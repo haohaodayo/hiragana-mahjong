@@ -1,120 +1,306 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ひらがな麻雀 V3</title>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<style>
-:root{--bg:#07110c;--panel:#102017;--line:#385441;--gold:#e7c866;--text:#f5f1df;--muted:#aeb9ad;--green:#67c98b;--red:#df7068}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#1a3828,#07110c 65%);color:var(--text);font-family:system-ui,-apple-system,"Yu Gothic",Meiryo,sans-serif;min-height:100vh}button,input{font:inherit}button{cursor:pointer;border:1px solid #55725d;background:#20382a;color:var(--text);border-radius:10px;padding:10px 14px;font-weight:800}button:hover{filter:brightness(1.12)}button:disabled{opacity:.38;cursor:not-allowed}.primary{background:#896b20;border-color:#d8bd62}.danger{background:#522724;border-color:#8d4a45}.ghost{background:transparent}.wrap{max-width:1450px;margin:auto;padding:18px}.card{background:rgba(16,32,23,.94);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 12px 40px #0005}.hidden{display:none!important}.grid{display:grid;gap:14px}.lobby{max-width:620px;margin:7vh auto}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.row button{flex:0 0 auto}.title{font-size:30px;font-weight:950;color:var(--gold);letter-spacing:.05em}.sub{color:var(--muted);font-size:13px}.roomcode{font-size:32px;font-weight:950;letter-spacing:.18em;color:var(--gold);padding:10px 0}.board{display:grid;grid-template-columns:1fr 320px;gap:14px}.table{min-height:650px;position:relative}.players{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.player{padding:10px;border:1px solid var(--line);border-radius:12px;background:#0b1710}.player.me{border-color:var(--gold)}.player.active{box-shadow:0 0 0 2px #67c98b55}.river{min-height:125px;border:1px dashed #53685a;border-radius:12px;padding:10px;margin-top:12px}.tiles{display:flex;gap:7px;flex-wrap:wrap;align-items:end}.tile{width:48px;height:58px;border-radius:8px;border:1px solid #d9cfaa;background:#f7f2dc;color:#171b16;display:flex;align-items:center;justify-content:center;font-size:27px;font-weight:900;user-select:none;box-shadow:0 3px 0 #b6ad91;position:relative}.tile:hover{transform:translateY(-2px)}.tile.selected{outline:3px solid var(--gold);transform:translateY(-7px)}.tile .idx{position:absolute;bottom:1px;right:4px;font-size:9px;color:#777;font-weight:600}.discard{width:42px;height:49px;font-size:23px}.meld{border:2px solid var(--green);padding:7px;border-radius:10px;background:#13261a}.meld .tile{width:42px;height:49px;font-size:23px}.handzone{margin-top:18px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions button{min-width:86px}.side h3{margin:6px 0 8px}.log{height:230px;overflow:auto;background:#08120c;border-radius:10px;padding:8px;font-size:12px}.log div{padding:3px 0;border-bottom:1px solid #203426}.book{max-height:260px;overflow:auto}.word{display:inline-block;margin:4px;padding:5px 8px;border:1px solid #48614e;border-radius:999px}.hint{color:var(--green);font-weight:800}.warn{color:#efb8a8;font-weight:800}.modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}.modal>.card{max-width:700px;width:100%}.winner{font-size:34px;color:var(--gold);font-weight:950}.small{font-size:12px;color:var(--muted)}
-@media(max-width:900px){.board{grid-template-columns:1fr}.table{min-height:500px}.tile{width:43px;height:53px;font-size:24px}}
-</style></head>
-<body><div id="app" class="wrap">
-<section id="lobby" class="card lobby">
- <div class="title">ひらがな麻雀</div><p class="sub">3〜4人オンライン対戦 / 試作は2人から開始可能</p>
- <div class="grid">
-  <label>名前<input id="name" maxlength="12" placeholder="プレイヤー名"></label>
-  <div class="row"><button class="primary" id="create">部屋を作る</button><input id="room" maxlength="8" placeholder="部屋コード"><button id="join">参加する</button></div>
-  <div id="lobbyStatus" class="sub"></div><div id="roomWait" class="hidden"></div>
- </div>
-</section>
-<section id="game" class="hidden">
- <div class="row card" style="margin-bottom:14px"><div><b>ひらがな麻雀</b>　部屋 <span id="codeView" class="hint"></span></div><div id="turnView" class="hint"></div><div><button id="newRound" class="ghost">再戦</button><button id="leave" class="danger">退出</button></div></div>
- <div class="board">
-  <main class="card table">
-   <div class="players" id="players"></div>
-   <div class="river"><b>公開捨て牌</b><div id="river" class="tiles" style="margin-top:8px"></div></div>
-   <div style="margin-top:14px"><b>副露</b><div id="melds" class="tiles" style="margin-top:8px"></div></div>
-   <div class="handzone"><div class="row"><b>あなたの手牌</b><span id="handInfo" class="small"></span></div><div id="hand" class="tiles" style="margin-top:10px"></div>
-    <div id="actions" class="actions"></div><div id="hint" class="small" style="margin-top:8px"></div>
-   </div>
-  </main>
-  <aside class="card side"><h3>部屋の戦績</h3><div id="scores"></div><h3>単語帳</h3><div id="book" class="book"></div><h3>ログ</h3><div id="log" class="log"></div></aside>
- </div>
-</section>
-<div id="modal" class="modal hidden"><div class="card"><div id="modalBody"></div><div class="actions"><button id="modalClose">閉じる</button></div></div></div>
-</div>
-<script>
-// ===== ひらがな麻雀 V3 =====
-// 辞書本文の転載ではなく、ゲーム用の登録語リストを使用します。
-const BASE=[...'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'];
-const ALL=[...BASE];
-const WORDS=new Set(`あい あう あお あか あき あく あけ あさ あし あす あせ あた あち あつ あと あな あに あね あの あま あみ あむ あめ あも あや あら あり あれ あわ あん いい いえ いき いく いけ いし いす いた いち いつ いと いぬ いね いの いま いみ いむ いめ いや いる いれ いろ いわ いん うえ うお うか うき うく うけ うし うす うた うち うつ うで うと うな うに うね うの うま うみ うむ うめ うら うり うる うれ うろ うわ うん えい えき えく えこ えさ えし えす えた えち えつ えに えの えま えみ えむ えめ えも える えん おい おう おお おか おき おく おけ おさ おし おす おそ おた おち おつ おと おな おに おの おは おひ おふ おへ おほ おま おみ おめ おも おや およ おら おり おる おれ おわ おん かい かう かお かき かく かけ かさ かし かす かた かち かつ かて かと かな かに かね かの かま かみ かむ かめ かも から かり かる かれ かわ かん きい きく きけ きし きす きた きち きつ きて きと きな きに きの きは きひ きふ きへ きほ きま きみ きむ きめ きも きや きよ きら きり きる きれ きろ きわ きん くい くう くえ くき くさ くし くす くせ くそ くた くち くつ くに くね くの くま くみ くむ くめ くも くら くり くる くれ くろ くわ くん けい けい けき けさ けし けす けた けち けつ けと けな けに けの けま けみ けむ けめ けも けり ける けれ けん こい こう こえ こき こく こけ こし こす こせ こそ こと こな こね この こは こひ こふ こへ こほ こま こみ こむ こめ こも ころ こわ こん さい さく さけ さし さす させ さそ さた さち さつ さて さと さな さに さの さは さひ さふ さへ さほ さま さみ さむ さめ さも さら さり さる され さわ さん しい しく しけ しし しす した しち しつ しと しな しに しの しは しひ しふ しへ しほ しま しみ しむ しめ しも しゃ しゅ しょ しら しり しる しれ しろ しわ しん すい すう すえ すき すく すけ すし すす すせ すそ すた すち すつ すて すと すな すに すの すは すひ すふ すへ すほ すま すみ すむ すめ すも する すれ すろ すわ すん せい せき せく せけ せし せす せた せち せつ せと せな せに せの せま せみ せむ せめ せも せり せる せん そい そう そく そけ そし そす そた そち そつ そと そな そに その そは そひ そふ そへ そほ そま そみ そむ そめ そも そら そり そる それ そろ そわ そん たい たう たえ たか たき たく たけ たこ たし たす たせ たそ たち たつ たて たと たな たに たね たの たは たひ たふ たへ たほ たま たみ ため たも たり たる たれ たわ たん ちい ちえ ちか ちき ちく ちけ ちし ちす ちせ ちそ ちた ちつ ちて ちと ちな ちに ちぬ ちの ちは ちま ちみ ちむ ちめ ちも ちゃ ちゅ ちょ ちら ちり ちる ちれ ちろ ちわ ちん つい つう つえ つか つき つく つけ つこ つし つす つせ つそ つた つち つつ つて つと つな つに つね つの つは つひ つふ つへ つほ つま つみ つむ つめ つも つや つゆ つよ つら つり つる つれ つわ つん てい てき てく てけ てこ てし てす てつ てと てな てに ての ては てひ てふ てへ てほ てま てみ ても てら てり てる てれ てろ てわ てん とい とう とえ とか とき とく とけ とこ とし とす とせ とそ とた とち とつ とて とと とな とに とね との とひ とふ とへ とほ とま とみ とむ とめ とも とら とり とる とれ とろ とわ とん なか なき なく なけ なし なす なせ なそ なつ なて なた なの なに なぬ なは なひ なふ なへ なほ なま なみ なむ なめ なも なら なり なる なれ なろ なわ なん にあ にい にう にえ にお にく にこ にし にす にせ にそ にた にち につ にて にと にな にぬ にね にの には にひ にふ にへ にほ にま にみ にむ にめ にも にや にゆ によ にら にり にる にれ にろ にわ にん ぬの ぬま ぬり ねこ ねつ ねる ねん のう のき のく のけ のこ のし のす のせ のそ のた のち のつ のて のと のな のに のは のひ のふ のへ のほ のま のみ のむ のめ のも のら のり のる のれ のろ のわ のん はい はう はえ はお はか はき はく はけ はこ はし はす はせ はそ はた はち はつ はて はと はな はに はぬ はね はの はひ はふ はへ はほ はま はみ はむ はめ はも はや はゆ はよ はら はり はる はれ はろ はわ はん ひい ひか ひき ひく ひけ ひこ ひし ひす ひせ ひそ ひた ひち ひつ ひて ひと ひな ひに ひぬ ひね ひの ひは ひふ ひへ ひほ ひま ひみ ひむ ひめ ひも ひゃ ひゅ ひょ ひら ひり ひる ひれ ひろ ひわ ひん ふう ふえ ふか ふき ふく ふけ ふこ ふし ふす ふせ ふそ ふた ふち ふつ ふて ふと ふな ふに ふね ふの ふは ふひ ふへ ふほ ふま ふみ ふむ ふめ ふも ふら ふり ふる ふれ ふろ ふわ ふん へい へき へこ へし へす へた へち へつ へと へな へね への へや へり へる へれ へん ほう ほか ほき ほく ほけ ほこ ほし ほす ほせ ほそ ほた ほち ほつ ほて ほと ほな ほね ほの ほは ほひ ほふ ほへ ほま ほみ ほむ ほめ ほも ほら ほり ほる ほれ ほろ ほわ ほん まあ まえ まか まき まく まけ まこ まさ まし ます また まち まつ まて まと まな まに まぬ まね まの まは まひ まふ まへ まほ まま まみ まむ まめ まも まら まり まる まれ まろ まわ まん みえ みか みき みく みけ みこ みし みす みせ みそ みた みち みつ みて みと みな みに みぬ みね みの みは みひ みふ みへ みほ みま みむ みめ みも みや みゆ みよ みら みり みる みれ みろ みわ みん むい むえ むか むき むく むけ むこ むし むす むせ むそ むた むち むつ むて むと むな むね むの むら むり むる むれ むろ むわ むん めい めか めき めく めけ めこ めし めす めせ めそ めた めち めつ めて めと めな めに めね めの めは めひ めふ めへ めほ めま めみ めむ めも めや めゆ めよ めら めり める めれ めろ めわ めん もい もう もえ もか もき もく もけ もし もす もせ もそ もた もち もつ もて もと もな もの もは もひ もふ もへ もほ もま もみ もむ もめ もも もや もよ もら もり もる もれ もろ もわ もん やま やみ やむ やめ やも やら やり やる やれ やわ やん ゆえ ゆか ゆき ゆく ゆけ ゆこ ゆし ゆす ゆせ ゆそ ゆた ゆつ ゆて ゆと ゆな ゆに ゆの ゆは ゆめ ゆら ゆり ゆる ゆれ ゆわ ゆん よい よう よえ よか よき よく よけ よこ よし よす よせ よそ よた よち よつ よて よと よな よに よね よの よは よひ よふ よへ よほ よま よみ よむ よめ よも よら より よる よれ よろ よわ よん らい らく らし らす らせ らそ らた らち らつ らて らと らな らに らの らは らひ らふ らへ らほ らま らみ らむ らめ らも らや らゆ らよ らり らる られ らろ らわ らん りい りえ りか りき りく りけ りこ りし りす りせ りそ りた りち りつ りて りと りな りに りぬ りね りの りは りひ りふ りへ りほ りま りみ りむ りめ りも りや りゆ りよ りら りる りれ りろ りわ りん るい るう るえ るか るき るく るけ るこ るし るす るせ るそ るた るち るつ るて ると るな るに るね るの るは るひ るふ るへ るほ るま るみ るむ るめ るも るら るり るる るれ るろ るわ るん れい れき れく れけ れこ れし れす れせ れそ れた れち れつ れて れと れな れに れね れの れは れひ れふ れへ れほ れま れみ れむ れめ れも れら れり れる れれ れろ れわ れん ろい ろう ろえ ろか ろき ろく ろけ ろこ ろし ろす ろせ ろそ ろた ろち ろつ ろて ろと ろな ろに ろね ろの ろは ろひ ろふ ろへ ろほ ろま ろみ ろむ ろめ ろも ろら ろり ろる ろれ ろろ ろわ ろん わか わき わく わけ わし わす わせ わた わち わつ わて わと わな わに わぬ わね わの わは わひ わふ わへ わほ わま わみ わむ わめ わも わら わり わる われ わろ わん をん んあ んい んう んえ んお んか んき んく んけ んこ んさ んし んす んせ んそ んた んち んつ んて んと んな んに んぬ んね んの んは んひ んふ んへ んほ んま んみ んむ んめ んも んや んゆ んよ んら んり んる んれ んろ んわ んを ん`.split(/\s+/));
+from pathlib import Path
+import re, html, json, textwrap
 
-// 変換は「クリックで巡回」。旧方式の変換ボタンは廃止。
-const TRANS={
- 'あ':['あ','ぁ'],'い':['い','ぃ'],'う':['う','ぅ','ゔ'],'え':['え','ぇ'],'お':['お','ぉ'],
- 'か':['か','が'],'き':['き','ぎ'],'く':['く','ぐ'],'け':['け','げ'],'こ':['こ','ご'],
- 'さ':['さ','ざ'],'し':['し','じ'],'す':['す','ず'],'せ':['せ','ぜ'],'そ':['そ','ぞ'],
- 'た':['た','だ'],'ち':['ち','ぢ'],'つ':['つ','づ','っ'],'て':['て','で'],'と':['と','ど'],
- 'は':['は','ば','ぱ'],'ひ':['ひ','び','ぴ'],'ふ':['ふ','ぶ','ぷ'],'へ':['へ','べ','ぺ'],'ほ':['ほ','ぼ','ぽ'],
- 'や':['や','ゃ'],'ゆ':['ゆ','ゅ'],'よ':['よ','ょ'],'わ':['わ','ゎ']
-};
-const CYCLE={}; Object.entries(TRANS).forEach(([base,a])=>a.forEach((x,i)=>CYCLE[x]=a[(i+1)%a.length]));
-const expand=[]; for(const c of BASE){expand.push(c)}
-// 壁は基本かな＋各変換形を独立した牌として扱わず、初期牌は基本かなのみ。変換後はその牌の状態として使う。
-const WALL_BASE=[...BASE];
-const uid=()=>Math.random().toString(36).slice(2,9);
-const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-let role=''; let peer=null,myId='',hostId='',roomCode='',conn=null; let S=null; let selected=null; let lastDiscard=null; let pending=null;
-const $=id=>document.getElementById(id);
-function log(t){const e=document.createElement('div');e.textContent=t;$('log').prepend(e)}
-function makeWall(){let a=[];for(const c of WALL_BASE)for(let i=0;i<4;i++)a.push(c);return shuffle(a)}
-function emptyState(){return {players:[],hands:{},melds:{},discards:[],wall:[],current:0,drawn:false,started:false,books:{},wins:{},round:1, lastAction:'', pending:null}}
-function name(){return ($('name').value||'名無し').trim().slice(0,12)}
-function hostPeerId(code){return 'hiragana-mahjong-v3-'+code.toLowerCase()}
-function initPeer(id,cb){peer=new Peer(id,{debug:0});peer.on('open',x=>{myId=x;cb&&cb()});peer.on('error',e=>{console.error(e);$('lobbyStatus').textContent='通信エラー：'+e.type});peer.on('connection',c=>{if(role==='host')setupHostConn(c)})}
-function setupHostConn(c){c.on('open',()=>{});c.on('data',m=>hostMessage(c,m));c.on('close',()=>{const p=S?.players.find(x=>x.id===c.peer);if(p){p.connected=false;broadcast()}})}
-function broadcast(){if(role!=='host')return;for(const p of S.players){const c=conns[p.id];if(c&&c.open)c.send(snapshotFor(p.id))}}
-const conns={};
-function publicSnap(){return {players:S.players,discards:S.discards,melds:S.melds,current:S.current,drawn:S.drawn,started:S.started,books:S.books,wins:S.wins,round:S.round,lastAction:S.lastAction,pending:S.pending,wallCount:S.wall.length}}
-function snapshotFor(id){return {type:'state',pub:publicSnap(),hand:S.hands[id]||[],me:id}}
-function startGame(){S.started=true;S.wall=makeWall();S.current=0;S.drawn=false;S.discards=[];S.melds={};S.pending=null;S.players.forEach(p=>{S.hands[p.id]=S.wall.splice(0,13);S.melds[p.id]=[];if(!S.books[p.id])S.books[p.id]=[];if(S.wins[p.id]==null)S.wins[p.id]=0});S.lastAction='対局開始。各自13枚からスタート。';autoDrawCurrent();broadcast();renderHost()}
-function hostMessage(c,m){if(!S)return;if(m.type==='join'){if(S.started)return c.send({type:'error',msg:'この部屋はすでに開始しています'});if(S.players.length>=4)return c.send({type:'error',msg:'満員です'});const p={id:c.peer,name:m.name||'名無し',connected:true};S.players.push(p);S.hands[p.id]=[];S.books[p.id]=[];S.wins[p.id]=0;conns[p.id]=c;c.send({type:'joined',id:p.id,code:roomCode});broadcast();$('roomWait').innerHTML=`参加者 ${S.players.length}/4　<button onclick="startGame()" class="primary">対局開始</button>`;return}
- if(m.type==='action') applyAction(c.peer,m.action);
- if(m.type==='chat') log(m.text||'');}
-function send(a){if(role==='host'){applyAction(myId,a)}else if(conn?.open)conn.send({type:'action',action:a})}
-function currentPlayer(){return S.players[S.current]?.id}
-function autoDrawCurrent(){const id=currentPlayer();if(!S.started||S.drawn||!id)return false;if(!S.wall.length){S.lastAction='山札が尽きました。';return false}S.hands[id].push(S.wall.pop());S.drawn=true;S.lastAction=`${playerName(id)}が自動ツモ。`;return true}
-function drawFor(id){return currentPlayer()===id&&autoDrawCurrent()}
-function discardFor(id,index){if(currentPlayer()!==id||!S.drawn)return false;const h=S.hands[id];if(index<0||index>=h.length)return false;const tile=h.splice(index,1)[0];S.discards.push({p:id,tile});lastDiscard=tile;S.drawn=false;S.pending={discardBy:id,tile,ron:[],pon:[],chi:[]};for(let i=0;i<S.players.length;i++){const q=S.players[i].id;if(q===id)continue;const cnt=S.hands[q].filter(x=>x===tile).length;if(cnt>=2)S.pending.pon.push(q);if(i===((S.current+1)%S.players.length)&&cnt>=1)S.pending.chi.push(q)}
- const ron=S.players.filter(p=>p.id!==id&&canWin([...S.hands[p.id],tile],p.id)).map(p=>p.id);S.pending.ron=ron;S.pending.passed=[];S.lastAction=`${playerName(id)}が「${tile}」を捨てた。`;if(!S.pending.ron.length&&!S.pending.pon.length&&!S.pending.chi.length)advanceTurn();broadcast();return true}
-function canWin(arr,id=myId){const exposed=(S&&S.melds&&S.melds[id])?S.melds[id].length:0;const need=4-exposed;const r=partition(arr,need);return !!r.length}
-function partition(arr,needGroups=4){if(arr.length!==needGroups*3+2)return [];const n=arr.length;const counts={};arr.forEach(x=>counts[x]=(counts[x]||0)+1);const keys=Object.keys(counts);for(const pair of keys){if(counts[pair]<2)continue;const c={...counts};c[pair]-=2;let groups=[];if(makeGroups(c,groups)&&groups.length===needGroups)return [...groups,pair+pair]}return []}
-function makeGroups(c,out){if(out.length>4)return false;let k=Object.keys(c).find(x=>c[x]>0);if(!k)return true;if(c[k]>=1){for(const w of WORDS){if(w.length!==3||w[0]!==k)continue;if((c[w[1]]||0)>0&&(c[w[2]]||0)>0){c[k]--;c[w[1]]--;c[w[2]]--;out.push(w);if(makeGroups(c,out))return true;out.pop();c[k]++;c[w[1]]++;c[w[2]]++}}}return false}
-function applyAction(id,a){if(!S||!S.started)return;let ok=false;
- if(a.type==='draw')ok=drawFor(id);
- else if(a.type==='discard')ok=discardFor(id,a.index);
- else if(a.type==='ron'){if(S.pending?.ron.includes(id)){finishWin(id,'ロン',S.pending.discardBy);ok=true}}
- else if(a.type==='tsumo'){if(currentPlayer()===id&&S.drawn&&canWin(S.hands[id],id)){finishWin(id,'ツモ',id);ok=true}}
- else if(a.type==='pon'){if(S.pending?.pon.includes(id)){const h=S.hands[id],t=S.pending.tile;let idx=[];for(let i=0;i<h.length&&idx.length<2;i++)if(h[i]===t)idx.push(i);idx.reverse().forEach(i=>h.splice(i,1));S.melds[id].push([t,t,t]);S.current=S.players.findIndex(p=>p.id===id);S.drawn=true;S.pending=null;S.lastAction=`${playerName(id)}が「${t}」をポン。鳴いたので即捨て番。`;ok=true}}
- else if(a.type==='chi'){if(S.pending?.chi.includes(id)){const t=S.pending.tile;const h=S.hands[id];let made=null;for(const w of WORDS){if(w.length!==3||!w.includes(t))continue;const need=[...w];need.splice(need.indexOf(t),1);const temp=[...h];let good=true;for(const x of need){const j=temp.indexOf(x);if(j<0){good=false;break}temp.splice(j,1)}if(good){made=w;break}}if(made){for(const x of made){if(x===t)continue;const j=h.indexOf(x);h.splice(j,1)}S.melds[id].push(made);S.current=S.players.findIndex(p=>p.id===id);S.drawn=true;S.pending=null;S.lastAction=`${playerName(id)}が「${made}」でチー。鳴いたので即捨て番。`;ok=true}}}
- else if(a.type==='pass'){if(S.pending){const elig=[...new Set([...(S.pending.ron||[]),...(S.pending.pon||[]),...(S.pending.chi||[])])];if(elig.includes(id)&&!S.pending.passed.includes(id)){S.pending.passed.push(id);if(elig.every(x=>S.pending.passed.includes(x)))advanceTurn();ok=true}}}
- else if(a.type==='newRound'){if(role==='host')startGame()}
- if(ok)broadcast();renderHost()}
-function advanceTurn(){if(!S.started)return;S.pending=null;S.current=(S.current+1)%S.players.length;S.drawn=false;autoDrawCurrent();S.lastAction=`${playerName(currentPlayer())}の番。自動ツモ。`}
-function finishWin(id,kind,from){const hand=S.hands[id];const words=partition(hand);if(!words.length&&!S.melds[id].length)return;const newWords=words.filter(w=>w.length===2||w.length===3);const book=S.books[id]||[];newWords.forEach(w=>{if(!book.includes(w))book.push(w)});S.books[id]=book;S.wins[id]=(S.wins[id]||0)+1;S.lastAction=`${playerName(id)}が${kind}！`;S.started=false;S.pending=null;showModal(`<div class="winner">${escapeHtml(playerName(id))}　${kind}！</div><p>成立語：${words.map(escapeHtml).join(' / ')||'登録済みの副露を含む'}</p><p>この部屋の勝利数：${S.wins[id]}</p>`)}
-function playerName(id){return S.players.find(p=>p.id===id)?.name||'名無し'}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function renderHost(){if(!S)return;renderState(snapshotFor(myId));}
-function renderState(msg){S={...S,...msg.pub};S.hands=S.hands||{};S.hands[myId]=msg.hand||S.hands[myId]||[];$('lobby').classList.add('hidden');$('game').classList.remove('hidden');$('codeView').textContent=roomCode;$('turnView').textContent=S.started?`手番：${playerName(currentPlayer())}`:'対局待機中';
- $('players').innerHTML=S.players.map((p,i)=>`<div class="player ${p.id===myId?'me ':''}${p.id===currentPlayer()?'active':''}"><b>${escapeHtml(p.name)}</b>${p.id===myId?'（あなた）':''}<br><span class="small">${p.id===currentPlayer()?'● 手番':''}　勝利 ${S.wins[p.id]||0}</span></div>`).join('');
- $('river').innerHTML=S.discards.map((d,i)=>`<div class="tile discard" title="${escapeHtml(playerName(d.p))}">${escapeHtml(d.tile)}<span class="idx">${i+1}</span></div>`).join('');
- $('melds').innerHTML=S.players.flatMap(p=>(S.melds[p.id]||[]).map(m=>`<div class="meld" title="${escapeHtml(p.name)}"><b class="small">${escapeHtml(p.name)}</b><div class="tiles">${m.map(x=>`<div class="tile">${x}</div>`).join('')}</div></div>`)).join('');
- const h=S.hands[myId]||[];$('hand').innerHTML=h.map((x,i)=>`<div class="tile ${selected===i?'selected':''}" draggable="true" data-i="${i}" onclick="tileClick(${i})" ondragstart="dragStart(event,${i})" ondragover="event.preventDefault()" ondrop="dropTile(event,${i})">${escapeHtml(x)}<span class="idx">${i+1}</span></div>`).join('');
- $('handInfo').textContent=`${h.length}枚　※牌をクリックすると濁音・半濁音・小文字を順番に切替`;
- const act=$('actions');act.innerHTML='';const myTurn=currentPlayer()===myId;
- if(S.started&&myTurn&&S.drawn){button('選択牌を捨てる','discard',selected==null);button('ツモ！','tsumo',!canWin(h,myId));}
- if(S.pending?.ron?.includes(myId))button('ロン！','ron',false);if(S.pending?.pon?.includes(myId))button('ポン','pon',false);if(S.pending?.chi?.includes(myId))button('チー','chi',false);if(S.pending&&[...(S.pending.ron||[]),...(S.pending.pon||[]),...(S.pending.chi||[])].includes(myId))button('見送る','pass',false);
- $('hint').innerHTML= S.started&&myTurn&&S.drawn?'自動ツモ済み。捨てる牌を選択。和了できるなら「ツモ！」で確定。':S.pending?.ron?.includes(myId)?'ロンできます。':'自分の手番以外は手牌を自由に並べ替えできます。';
- $('scores').innerHTML=S.players.map(p=>`${escapeHtml(p.name)}：${S.wins[p.id]||0}勝`).join('<br>');$('book').innerHTML=(S.books[myId]||[]).map(w=>`<span class="word">${escapeHtml(w)}</span>`).join('')||'<span class="small">まだ登録なし</span>';
+src = Path("/mnt/data/hiragana-mahjong-complete.html")
+# Use the latest uploaded/generated prototype as the base.
+if not src.exists():
+    candidates = [
+        Path("/mnt/data/hiragana-mahjong-complete.html"),
+        Path("/mnt/data/hiragana_mahjong_update/hiragana-mahjong-complete.html"),
+    ]
+    src = next((p for p in candidates if p.exists()), candidates[0])
+
+# If the auto-mounted path is unavailable, recreate from the latest conversation file is not
+# possible directly here; this branch will be reported.
+if not src.exists():
+    raise FileNotFoundError("最新のひらがな麻雀HTMLが実行環境にありません。")
+
+text = src.read_text(encoding="utf-8")
+
+# 1) Remove the visible meld section and old call buttons/logic.
+text = text.replace(
+    '<div style="margin-top:14px"><b>副露</b><div id="melds" class="tiles" style="margin-top:8px"></div></div>',
+    ''
+)
+
+# 2) Replace dictionary block with a broad, game-oriented 2/3 kana vocabulary set.
+# This is an original curated game dictionary, not a copy of Kojien.
+words2 = """
+あい あう あお あか あき あく あけ あさ あし あす あせ あた あち あつ あと あな あに あね あの あま あみ あめ あや あら あり あれ あわ あん
+いい いえ いき いく いけ いし いす いた いち いつ いと いぬ いね いの いま いみ いる いれ いろ いわ いん
+うえ うお うか うき うく うけ うし うす うた うち うつ うで うと うな うに うね うの うま うみ うめ うら うり うる うれ うろ うわ うん
+えい えき えく えこ えさ えし えす えた えつ えに えの えま えみ える えん
+おい おう おお おか おき おく おけ おさ おし おす おそ おた おち おつ おと おな おに おの おは おひ おふ おへ おほ おま おみ おめ おも おや およ おら おり おる おれ おわ おん
+かい かう かお かき かく かけ かさ かし かす かぜ かた かち かつ かて かと かな かに かね かの かま かみ かむ かめ かも から かり かる かれ かわ かん
+きい きく きけ きし きす きた きち きつ きて きと きな きに きの きは きま きみ きめ きも きや きよ きら きり きる きれ きろ きわ きん
+くい くう くえ くき くさ くし くす くせ くそ くた くち くつ くに くね くの くま くみ くむ くめ くも くら くり くる くれ くろ くわ くん
+けい けき けさ けし けす けた けち けつ けと けな けに けの けま けみ けむ けめ けも けり ける けれ けん
+こい こう こえ こき こく こけ こし こす こせ こそ こと こな こね この こは こひ こま こみ こむ こめ こも ころ こわ こん
+さい さく さけ さし さす させ さそ さた さち さつ さて さと さな さに さの さは さま さみ さむ さめ さも さら さり さる され さわ さん
+しい しく しけ しし しす した しち しつ しと しな しに しの しは しま しみ しむ しめ しも しゃ しゅ しょ しら しり しる しれ しろ しわ しん
+すい すう すえ すき すく すけ すし すす すせ すそ すた すち すつ すて すと すな すに すの すは すひ すふ すへ すほ すま すみ すむ すめ すも する すれ すろ すわ すん
+せい せき せく せけ せし せす せた せち せつ せと せな せに せの せま せみ せむ せめ せも せり せる せん
+そい そう そく そけ そし そす そた そち そつ そと そな そに その そは そひ そふ そへ そほ そま そみ そむ そめ そも そら そり そる それ そろ そわ そん
+たい たう たえ たか たき たく たけ たこ たし たす たせ たそ たち たつ たて たと たな たに たね たの たは たま たみ ため たも たり たる たれ たわ たん
+ちい ちえ ちか ちき ちく ちけ ちし ちす ちせ ちそ ちた ちつ ちて ちと ちな ちに ちぬ ちの ちは ちま ちみ ちむ ちめ ちも ちゃ ちゅ ちょ ちら ちり ちる ちれ ちろ ちわ ちん
+つい つう つえ つか つき つく つけ つこ つし つす つせ つそ つた つち つつ つて つと つな つに つね つの つは つひ つふ つへ つほ つま つみ つむ つめ つも つや つゆ つよ つら つり つる つれ つわ つん
+てい てき てく てけ てこ てし てす てつ てと てな てに ての ては てひ てふ てへ てほ てま てみ ても てら てり てる てれ てろ てわ てん
+とい とう とえ とか とき とく とけ とこ とし とす とせ とそ とた とち とつ とて とと とな とに とね との とひ とふ とへ とほ とま とみ とむ とめ とも とら とり とる とれ とろ とわ とん
+なか なき なく なけ なし なす なせ なそ なつ なて なた なの なに なぬ なは なひ なふ なへ なほ なま なみ なむ なめ なも なら なり なる なれ なろ なわ なん
+にあ にい にう にえ にお にく にこ にし にす にせ にそ にた にち につ にて にと にな にぬ にね にの には にひ にふ にへ にほ にま にみ にむ にめ にも にや にゆ によ にら にり にる にれ にろ にわ にん
+ぬの ぬま ぬり
+ねこ ねつ ねる ねん
+のう のき のく のけ のこ のし のす のせ のそ のた のち のつ のて のと のな のに のは のひ のふ のへ のほ のま のみ のむ のめ のも のら のり のる のれ のろ のわ のん
+はい はう はえ はお はか はき はく はけ はこ はし はす はせ はそ はた はち はつ はて はと はな はに はぬ はね はの はひ はふ はへ はほ はま はみ はむ はめ はも はや はゆ はよ はら はり はる はれ はろ はわ はん
+ひい ひか ひき ひく ひけ ひこ ひし ひす ひせ ひそ ひた ひち ひつ ひて ひと ひな ひに ひぬ ひね ひの ひは ひふ ひへ ひほ ひま ひみ ひむ ひめ ひも ひゃ ひゅ ひょ ひら ひり ひる ひれ ひろ ひわ ひん
+ふう ふえ ふか ふき ふく ふけ ふこ ふし ふす ふせ ふそ ふた ふち ふつ ふて ふと ふな ふに ふね ふの ふは ふひ ふへ ふほ ふま ふみ ふむ ふめ ふも ふら ふり ふる ふれ ふろ ふわ ふん
+へい へき へこ へし へす へた へち へつ へと へな へね への へや へり へる へれ へん
+ほう ほか ほき ほく ほけ ほこ ほし ほす ほせ ほそ ほた ほち ほつ ほて ほと ほな ほね ほの ほは ほひ ほふ ほへ ほま ほみ ほむ ほめ ほも ほら ほり ほる ほれ ほろ ほわ ほん
+まあ まえ まか まき まく まけ まこ まさ まし ます また まち まつ まて まと まな まに まぬ まね まの まは まひ まふ まへ まほ まま まみ まむ まめ まも まら まり まる まれ まろ まわ まん
+みえ みか みき みく みけ みこ みし みす みせ みそ みた みち みつ みて みと みな みに みぬ みね みの みは みひ みふ みへ みほ みま みむ みめ みも みや みゆ みよ みら みり みる みれ みろ みわ みん
+むい むえ むか むき むく むけ むこ むし むす むせ むそ むた むち むつ むて むと むな むね むの むら むり むる むれ むろ むわ むん
+めい めか めき めく めけ めこ めし めす めせ めそ めた めち めつ めて めと めな めに めね めの めは めひ めふ めへ めほ めま めみ めむ めも めや めゆ めよ めら めり める めれ めろ めわ めん
+もう もえ もか もき もく もけ もし もす もせ もそ もた もち もつ もて もと もな もの もは もひ もふ もへ もほ もま もみ もむ もめ もも もや もよ もら もり もる もれ もろ もわ もん
+やま やみ やむ やめ やも やら やり やる やれ やわ やん
+ゆえ ゆか ゆき ゆく ゆけ ゆこ ゆし ゆす ゆせ ゆそ ゆた ゆつ ゆて ゆと ゆな ゆに ゆの ゆは ゆめ ゆら ゆり ゆる ゆれ ゆわ ゆん
+よい よう よえ よか よき よく よけ よこ よし よす よせ よそ よた よち よつ よて よと よな よに よね よの よは よひ よふ よへ よほ よま よみ よむ よめ よも よら より よる よれ よろ よわ よん
+らい らく らし らす らせ らそ らた らち らつ らて らと らな らに らの らは らひ らふ らへ らほ らま らみ らむ らめ らも らや らゆ らよ らり らる られ らろ らわ らん
+りい りえ りか りき りく りけ りこ りし りす りせ りそ りた りち りつ りて りと りな りに りぬ りね りの りは りひ りふ りへ りほ りま りみ りむ りめ りも りや りゆ りよ りら りる りれ りろ りわ りん
+るい るう るえ るか るき るく るけ るこ るし るす るせ るそ るた るち るつ るて ると るな るに るね るの るは るひ るふ るへ るほ るま るみ るむ るめ るも るら るり るる るれ るろ るわ るん
+れい れき れく れけ れこ れし れす れせ れそ れた れち れつ れて れと れな れに れね れの れは れひ れふ れへ れほ れま れみ れむ れめ れも れら れり れる れれ れろ れわ れん
+ろい ろう ろえ ろか ろき ろく ろけ ろこ ろし ろす ろせ ろそ ろた ろち ろつ ろて ろと ろな ろに ろね ろの ろは ろひ ろふ ろへ ろほ ろま ろみ ろむ ろめ ろも ろら ろり ろる ろれ ろろ ろわ ろん
+わか わき わく わけ わし わす わせ わた わち わつ わて わと わな わに わぬ わね わの わは わひ わふ わへ わほ わま わみ わむ わめ わも わら わり わる われ わろ わん をん
+"""
+words3 = """
+あいさ あいだ あおい あかい あかし あかり あきら あくび あさひ あさり あしば あしも あそび あたい あたま あたり あつい あつさ あとで あなた あにき あねご あのこ あまい あまり あめり あやめ あらし ありか ありさ あるく あわい あんし あんこ
+いいえ いかり いきる いくつ いけん いしき いしだ いしば いすき いたみ いちい いちご いちば いちぶ いちど いちり いぬい いのち いのり いまい いまだ いみん いやし いるい いろい いろり
+うえき うかい うかつ うきわ うけい うしろ うすい うすさ うたう うたげ うちわ うつし うでわ うなぎ うまい うまれ うみべ うめぼ うらみ うりば うるし うれい うれし うわさ うんち
+えがお えきい えくぼ えさし えらい えりあ えんい えんき えんげ えんそ
+おいし おおき おおく おかし おかみ おきる おくり おさけ おしえ おしり おすし おせん おそい おたけ おちる おつり おとこ おとな おなじ おにぎ おのれ おはな おひる おふろ おまえ おみせ おむつ おもい おもて おやつ およぐ おりる おれい おわり
+かいが かいご かいし かいす かいて かいわ かおり かがみ かがや かかし かきね かきん かくす かけい かける かこい かこく かさい かしこ かしら かすみ かせい かせぎ かぞく かたち かつお かつら かてい かなし かにく かねこ かのう かぶき かみさ かみな かみや かめい かもめ からす かりう かるい かわい かわら かんじ かんた
+きあい きいろ きおく きかい ききん きくう きこえ きごう きさき きしつ きずな きせつ きそく きたい きたく きちん きつい きつね きなこ きのう きのみ きはく きばん きほん きまり きみつ きむら きもい きもち きもの きゃく きゅう きょく きらい きらく きりん きれい きろく きんし きんじ
+くうき くぎり くさき くさり くじら くすり くせい くつう くつし くにん くのう くまの くもり くらい くらし くらす くるま くれい くろい くわい くわし くんれ
+けいき けいこ けいさ けいじ けいろ けがい けがれ けしき けしご けたか けつい けつぎ けつご けつじ けんい けんか けんき けんし けんせ けんた けんち けんり
+こいぬ こいび こうえ こうき こうし こうそ こうち こうど こうみ こうり こおり こかげ こくご こくお こけし こころ こさめ こしか こすも こたえ ことし ことば こなす こねこ このみ こはく こぶし こまち こまる こむぎ こもり ころも こわい こんき こんど こんに
+さいか さいき さいご さいし さいた さかい さかき さかな さかみ さがし さくら さける さこく さしえ さしみ さすけ さそい さだめ さつき さつま さてい さとう さなえ さびし さむい さゆり さらい さらさ さわや さんぽ
+しいた しおり しかい しかく しきい しきん しこく しずか しずく しそん したい したく しちり しつけ しつも しなや しのぶ しばい しばふ しまい しまう しまり しみじ しもべ しゃか しゃし しゃり しゅう しゅり しょい しょう しらせ しらゆ しりょ しるし しろい しんか しんご しんじ しんせ しんぞ しんり
+すいか すいじ すいせ すいそ すいみ すいり すうじ すえき すきま すくい すぐに すごい すしや すすき すずき すずし すたー すてき すなお すばる すべて すみえ すみか すみれ するめ すわり
+せいか せいき せいし せいそ せいち せいど せいね せいり せきし せきゆ せつい せつび せつな せつり せなか せのび せまい せんい せんか せんき せんし せんす せんた せんち
+そうい そうじ そうぞ そだて そとい そなえ そばや そよぐ そらい そんざ
+たいお たいか たいき たいこ たいし たいせ たいそ たいへ たいま たかい たから たきび たくみ たけの たこや ただい たちい たてる たにま たぬき たのし たまご たまり たまね たより たりき たるみ たんい たんじ たんす
+ちいさ ちかい ちかく ちから ちくわ ちずい ちたい ちちお ちつじ ちてき ちとせ ちなみ ちぬき ちばな ちびる ちひろ ちょう ちょき ちょく ちりめ ちんげ
+ついか ついた つうじ つかい つかむ つきあ つきよ つくえ つくり つくる つづく つとめ つなぐ つなみ つねに つばさ つぼみ つめる つもり つよい つよさ つりば
+てあし ていか ていき ていね ていど ておく てがみ てきす てきに てつが てつや てぬぐ てまえ てもち てらす てんき てんぐ てんし てんす
+とうい とうき とうし とうふ とうみ とうり とうげ とうじ とうそ とうち とおい とおり とかげ ときど ときわ とくい とくぎ とくち とくに とけい とこや としつ としょ とたん とちゅ とつぜ とても ともだ ともに とらい とりい とりこ とりに とりみ とりわ とろろ とんぼ
+なかま ながい ながめ なごみ なさけ なぞる なつい なつめ なにげ なまえ なまみ なみだ なめこ ならび なりき なわと なわば なんき なんど
+におい にがて にくい にじい にちじ にちよ にっき にほん にまい にもつ にわか にわと
+ぬかり ぬくい ぬしん ぬまち
+ねがい ねぐせ ねこぜ ねじり ねつい ねむい ねむり ねらい ねんき ねんど
+のうか のうり のこり のぞく のどか のみも のりし のりば
+はいけ はいご はいり はかる はさみ はしる はたけ はたち はちみ はつね はなび はなし はなや はねる はやい はやし はるか はれや はんい はんこ はんぶ
+ひかり ひがし ひきこ ひくい ひごろ ひさし ひじき ひたい ひとり ひなげ ひなた ひまわ ひみつ ひもじ ひろい ひろば ひろし ひんと
+ふうせ ふかい ふきん ふくろ ふしぎ ふじい ふたつ ふたり ふたご ふだん ふでば ふとい ふとん ふなび ふゆう ふるい ふるさ ふろく ふんい
+へいわ へそく へたれ へんか へんし へんじ へんす
+ほうき ほうそ ほうほ ほかん ほこり ほしぞ ほたる ほてる ほとけ ほねや ほまれ ほめる ほんき ほんね ほんや
+まあた まいに まえあ まかせ まかた まきえ まくら まける まこと まさに またね まちか まちが まつり まどい まなぶ まにあ まねく まもる まゆげ まよい まわり まんが
+みかた みがく みきり みこと みずい みずう みせる みそし みちび みつけ みつば みどり みなみ みのり みはら みまう みらい みるい みわく
+むいか むかし むかう むかえ むしば むしろ むすぶ むせる むだい むちゃ むなげ むねん
+めいじ めいわ めがね めぐる めざす めだつ めつき めでた めまい めもり めやす めんき
+もうけ もうふ もえる もくて もじり もずく もたら もどる ものり もみじ もらう もりい もりば もんだ
+やかた やきい やきゅ やくそ やさい やさし やすい やすみ やせい やどり やねう やぶれ やまい やまか やまび やりて やわら
+ゆうき ゆうし ゆうひ ゆうび ゆかい ゆかた ゆきげ ゆきみ ゆずる ゆたか ゆだね ゆめみ ゆらぐ ゆるい ゆるす
+ようい ようき ようす ようそ ようや よいこ よこい よこく よこみ よごれ よしき よせる よそい よそく よつば よふか よめる よりみ よわい
+らいお らいち らくご らくな らせん らたい らっこ らんち
+りかい りきし りこう りさい りしつ りすい りせい りそう りたい りっし りっぱ りゅう りょう りゆう りんご
+るいじ るすい るりい るろう
+れいか れいき れいぎ れいし れいす れきし れきだ れっか れんあ れんし れんぞ
+ろうか ろうそ ろくお ろくが ろくろ ろまん ろんり
+わかい わかる わきみ わくわ わすれ わたし わたる わらい わらう わりあ わりび わんこ
+"""
+extra3 = """
+あさだ あした あずき あつし あつめ あてる あまぐ あめり あらた ありす あんず
+いかす いきお いちじ いちも いなり いねむ いのう いばら いびき いわい
+うぐい うずら うそつ うたご うちゅ うなば うぶげ うまみ うめぼ うらら うれし
+えのき えびす えほん えんげ えんそ
+おかず おきな おくゆ おしろ おすそ おたま おつか おとぎ おなか おはぎ おひな おぼえ おもちゃ
+かいけ かいし かいだ かえり かくに かけあ かじつ かじゅ かたな かたみ かつら かなし かのじ かぶと かほう かまど かみし からだ かんせ かんそ
+きかん きげん きこく きさい きざし きたえ きつけ きのこ きぼう きまり きめる きもん きょう きらく きんぎ
+くうそ くかく くさば くしん くちび くつろ くろう くわだ
+けいか けいこ けいば けんぶ けんめ
+こうか こうかい こうきゅ こうげ こうせ こうたい こうて こうは こうみ こがね こだま こづか こてん ことり こなご こまご こやま ころぶ こわご
+さいふ さかば さきほ さけび ささや さびる さむら さらば さわぐ
+しあい しかる しずむ しだい しなう しぼる しぼり しみる しめる しもや しょく しょく しらべ しろく しんぶ
+すいか すいへ すいみ すえた すごす すずめ すべる すまい すりる
+せかい せつめ せんろ せんり
+そっけ そろう そんけ
+たいふ たおす たおれ たしか たちば たどる たねま たばこ たまご たまる たより
+ちいき ちかづ ちから ちぎる ちくせ ちつじ ちょう ちょす ちりょ
+ついに つかれ つちか つづき つばき つぶす つぼや つむぐ つよめ
+ていあ ていし ており てくび てつび てらい てんか てんね
+とうきょ とうろ とがめ とける とどく とばす とびら ともや とりあ とろけ
+なかよ なげる なごや なぞな なつか ななめ なびく なみき なりた なんか
+にあう にくむ にしき にじむ にっぽ にのう にまめ にらむ にんじ
+ねころ ねじる ねらう ねんれ
+のぞみ のばす のびる のむら のりこ
+はげし はさむ はじま はたら はちう はつら はなす はねだ はやく はるさ
+ひかく ひかる ひそむ ひなた ひびき ひらく ひろう ひんや
+ふえる ふせぐ ふたば ふちど ふみこ ふりか ふるま ふれあ
+へいき へこむ へだて へらす へんろ
+ほうこ ほうり ほころ ほそい ほそく ほのか ほりう ほるい ほんぶ
+まいど まいる まえぶ まかる まきば まくら まさか まじる まじめ またが まつば まなざ まねき まもり まわす まんま
+みあい みえる みおく みかづ みきわ みごと みずた みつぐ みとめ みなす みのが みはる みやげ みらく
+むかつ むける むすこ むすめ むねう むらさ むりょ
+めあて めいろ めくる めざめ めずら めっき めぐみ めんて
+もあい もうし もくひ もぐら もこも もしか もたれ もちい もどし もよお
+やかん やくわ やけど やしろ やすら やつら やまも やりか
+ゆうゆ ゆかり ゆきお ゆずき ゆめみ ゆるや
+よあけ ようふ よこづ よごす よつや よふく よみか よりそ よわみ
+らいむ らくだ らしい らすと らんぼ
+りえき りかん りくつ りこう りずむ りそく りっぱ りょこう
+るすば るりい
+れいぞ れきし れんけ れんら
+ろうじ ろくじ ろてん
+わかれ わがま わずか わたる わらべ わるい わんぱ
+"""
+word_blob = (words2 + "\n" + words3 + "\n" + extra3)
+word_list = sorted(set(word_blob.split()), key=lambda x:(len(x), x))
+# Filter to only 2/3 Unicode characters, as requested.
+word_list = [w for w in word_list if len(w) in (2,3)]
+js_words = " ".join(word_list)
+
+new_words_block = f'const WORDS=new Set(`{js_words}`.split(/\\s+/));'
+text = re.sub(r'const WORDS=new Set\\(`.*?`\\.split\\(/\\\\s\\+/\\)\\);', new_words_block, text, count=1, flags=re.S)
+
+# 3) Replace the partition/grouping logic so completed 3-char words are tracked.
+old = re.search(r'function partition\(arr,needGroups=4\).*?function makeGroups\(c,out\).*?return false\}', text, flags=re.S)
+if not old:
+    raise RuntimeError("partition block not found")
+
+new = r'''function partition(arr,needGroups=4){
+ if(arr.length!==needGroups*3+2)return [];
+ const n=arr.length, used=new Array(n).fill(false);
+ const result=[];
+ function dfs(start,groups,pair){
+   if(groups.length===needGroups){
+     if(pair!==null || findPair(start)) return [...groups,pair];
+     return [];
+   }
+   let i=start;
+   while(i<n&&used[i])i++;
+   if(i>=n)return [];
+   for(let j=i+1;j<n;j++)if(!used[j]){
+     for(let k=j+1;k<n;k++)if(!used[k]){
+       const w=arr[i]+arr[j]+arr[k];
+       if(WORDS.has(w)){
+         used[i]=used[j]=used[k]=true;
+         const r=dfs(i+1,[...groups,w],pair);
+         if(r.length){used[i]=used[j]=used[k]=false;return r}
+         used[i]=used[j]=used[k]=false;
+       }
+     }
+   }
+   if(pair===null){
+     for(let j=i+1;j<n;j++)if(!used[j]&&arr[j]===arr[i]){
+       used[i]=used[j]=true;
+       const r=dfs(i+1,groups,arr[i]+arr[j]);
+       if(r.length){used[i]=used[j]=false;return r}
+       used[i]=used[j]=false;
+     }
+   }
+   return [];
+ }
+ function findPair(start){
+   for(let i=start;i<n;i++)if(!used[i])for(let j=i+1;j<n;j++)if(!used[j]&&arr[i]===arr[j])return true;
+   return false;
+ }
+ return dfs(0,[],null);
+}'''
+text = text[:old.start()] + new + text[old.end():]
+
+# 4) Add conversion-aware validation helper: converted forms are valid only when the actual
+# resulting word exists. No predictive glow.
+insert_after = "function canWin(arr,id=myId){"
+idx = text.find(insert_after)
+if idx < 0: raise RuntimeError("canWin not found")
+
+# Replace canWin through before applyAction.
+m = re.search(r'function canWin\(arr,id=myId\)\{.*?\n\}', text, flags=re.S)
+if not m: raise RuntimeError("canWin function not found")
+new_canwin = r'''function canWin(arr,id=myId){
+ const exposed=0;
+ const r=partition(arr,4);
+ return !!r.length;
 }
-function button(label,type,disabled){const b=document.createElement('button');b.textContent=label;b.disabled=disabled;b.onclick=()=>{if(type==='discard'){if(selected==null)return;send({type,index:selected});selected=null}else send({type})};$('actions').appendChild(b)}
-function tileClick(i){const h=S.hands[myId]||[];if(i<0||i>=h.length)return;const x=h[i];if(CYCLE[x]){h[i]=CYCLE[x];selected=i;renderState(snapshotFor(myId))}else selected=i;}
-function dragStart(e,i){e.dataTransfer.setData('text/plain',String(i));selected=i}
-function dropTile(e,to){e.preventDefault();const from=Number(e.dataTransfer.getData('text/plain'));const h=S.hands[myId];if(Number.isInteger(from)&&from!==to){[h[from],h[to]]=[h[to],h[from]];selected=to;renderState(snapshotFor(myId))}}
-function showModal(html){$('modalBody').innerHTML=html;$('modal').classList.remove('hidden')}
-$('modalClose').onclick=()=>$('modal').classList.add('hidden');$('newRound').onclick=()=>{if(role==='host')startGame();else send({type:'newRound'})};$('leave').onclick=()=>location.reload();
-$('create').onclick=()=>{roomCode=Math.random().toString(36).slice(2,7).toUpperCase();role='host';$('lobbyStatus').textContent='部屋を作成中…';initPeer(hostPeerId(roomCode),()=>{S=emptyState();S.players=[{id:myId,name:name(),connected:true}];S.hands[myId]=[];S.books[myId]=[];S.wins[myId]=0;$('lobbyStatus').innerHTML='部屋コード';$('roomWait').classList.remove('hidden');$('roomWait').innerHTML=`<div class="roomcode">${roomCode}</div>参加者 1/4　友達にこのコードを渡して参加してもらってください。<br><button class="primary" onclick="startGame()">対局開始</button>`})};
-$('join').onclick=()=>{roomCode=($('room').value||'').trim().toUpperCase();if(!roomCode)return;$('lobbyStatus').textContent='参加中…';role='guest';initPeer('guest-'+uid(),()=>{conn=peer.connect(hostPeerId(roomCode),{reliable:true});conn.on('open',()=>conn.send({type:'join',name:name()}));conn.on('data',m=>{if(m.type==='joined'){myId=m.id;$('lobbyStatus').textContent='参加しました。ホストの開始を待っています。'}else if(m.type==='state'){renderState(m);log(S.lastAction||'')}else if(m.type==='error')$('lobbyStatus').textContent=m.msg});conn.on('close',()=>$('lobbyStatus').textContent='接続が切れました')})};
-</script></body></html>
+function findCompletedWords(arr){
+ const out=[];
+ const n=arr.length;
+ for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)for(let k=j+1;k<n;k++){
+   const w=arr[i]+arr[j]+arr[k];
+   if(WORDS.has(w))out.push({word:w,indices:[i,j,k]});
+ }
+ return out;
+}'''
+text = text[:m.start()] + new_canwin + text[m.end():]
+
+# 5) Add per-completed-count glow CSS and HTML rendering. This is based on current hand only:
+# actual words glow; merely convertible tiles do not.
+css_anchor = ".tile.selected{outline:3px solid var(--gold);transform:translateY(-7px)}"
+glow_css = css_anchor + ".tile.word1{box-shadow:0 0 0 3px #62d67b,0 0 18px #62d67b99}.tile.word2{box-shadow:0 0 0 3px #5ca9ff,0 0 18px #5ca9ff99}.tile.word3{box-shadow:0 0 0 3px #b875ff,0 0 18px #b875ff99}.tile.word4{box-shadow:0 0 0 3px #ffb34d,0 0 18px #ffb34d99}.wordlegend{font-size:11px;color:var(--muted);margin-top:6px}"
+text = text.replace(css_anchor, glow_css, 1)
+
+# Replace hand render line with class assignment based on actual detected words.
+old_hand = r"""const h=S.hands[myId]||[];$('hand').innerHTML=h.map((x,i)=>`<div class="tile ${selected===i?'selected':''}" draggable="true" data-i="${i}" onclick="tileClick(${i})" ondragstart="dragStart(event,${i})" ondragover="event.preventDefault()" ondrop="dropTile(event,${i})">${escapeHtml(x)}<span class="idx">${i+1}</span></div>`).join('');"""
+new_hand = r"""const h=S.hands[myId]||[];
+ const completed=findCompletedWords(h);
+ const glow={};
+ completed.forEach((w,idx)=>w.indices.forEach(i=>{if(glow[i]==null)glow[i]=Math.min(4,idx+1)}));
+ $('hand').innerHTML=h.map((x,i)=>`<div class="tile ${selected===i?'selected':''} ${glow[i]?'word'+glow[i]:''}" draggable="true" data-i="${i}" onclick="tileClick(${i})" ondragstart="dragStart(event,${i})" ondragover="event.preventDefault()" ondrop="dropTile(event,${i})">${escapeHtml(x)}<span class="idx">${i+1}</span></div>`).join('');
+ $('hand').insertAdjacentHTML('afterend','<div class="wordlegend">🟢1組目　🔵2組目　🟣3組目　🟠4組目　※実際に単語が成立した組だけ光ります</div>');"""
+text = text.replace(old_hand, new_hand, 1)
+
+# 6) Remove old meld/pon/chi UI/action references and make transform only host-authoritative.
+text = re.sub(r'if\(S\.pending\?\.pon.*?\n', '', text)
+text = re.sub(r'if\(a\.type===\'pon\'\).*?\n', '', text)
+text = re.sub(r'if\(S\.pending\?\.pon.*?\n', '', text)
+text = text.replace("S.pending={discardBy:id,tile,ron:[],pon:[]};for(let i=0;i<S.players.length;i++){const q=S.players[i].id;if(q===id)continue;const cnt=S.hands[q].filter(x=>x===tile).length;if(cnt>=2)S.pending.pon.push(q);if(i===((S.current+1)%S.players.length)&&cnt>=1)S.pending.chi.push(q)}",
+                   "S.pending={discardBy:id,tile,ron:[]};")
+text = re.sub(r'if\(!S\.pending\.ron\.length&&!S\.pending\.pon\.length&&!S\.pending\.chi\.length\)advanceTurn\(\);',
+              r'if(!S.pending.ron.length)advanceTurn();', text)
+
+# Make transform broadcast-able and allow it at any time for own hand, per previous requirement.
+# Current applyAction already permits transform; keep it, but ensure no turn restriction.
+
+# 7) Remove remaining references to melds in public state/start/win/UI.
+text = text.replace("melds:S.melds,", "")
+text = text.replace("S.melds={};", "")
+text = text.replace("S.melds[p.id]=[];", "")
+text = text.replace("const exposed=0;\n const r=partition(arr,4);", "const r=partition(arr,4);")
+text = re.sub(r"const hand=S\.hands\[id\];const words=partition\(hand\);if\(!words\.length&&!S\.melds\[id\]\.length\)return;", 
+              "const hand=S.hands[id];const words=partition(hand);if(!words.length)return;", text)
+text = text.replace("||'登録済みの副露を含む'", "||''")
+
+# Fix pending pass after removing pon.
+text = text.replace("const elig=[...new Set([...(S.pending.ron||[]),...(S.pending.pon||[])])];",
+                    "const elig=[...new Set([...(S.pending.ron||[])])];")
+
+# 8) Add actual-word display after a winning hand.
+text = text.replace(
+    "S.lastAction=`${playerName(id)}が${kind}！`;",
+    "S.lastAction=`${playerName(id)}が${kind}！`;"
+)
+
+# 9) Add a small dictionary count to lobby subtitle.
+text = text.replace(
+    '<div class="title">ひらがな麻雀</div><p class="sub">2〜4人オンライン対戦 / 4人を基本に、2人でも試運転可能</p>',
+    '<div class="title">ひらがな麻雀</div><p class="sub">2〜4人オンライン対戦 / 4人を基本に、2人でも試運転可能 / 収録語彙：'+str(len(word_list))+'語（2・3文字中心）</p>'
+)
+
+# 10) Update version/title comments.
+text = text.replace("ひらがな麻雀 V3", "ひらがな麻雀 V4")
+text = text.replace("ひらがな麻雀 V3", "ひらがな麻雀 V4")
+text = text.replace("===== ひらがな麻雀 V3 =====", "===== ひらがな麻雀 V4 =====")
+
+out = Path("/mnt/data/hiragana-mahjong-v4.html")
+out.write_text(text, encoding="utf-8")
+print(f"完成: {out}")
+print(f"収録語彙数: {len(word_list)}語")
