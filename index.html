@@ -3,28 +3,37 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ひらがな麻雀 V4</title>
+  <title>ひらがな麻雀 V5</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     :root {
       --bg: #07110c;
-      --panel: #102017;
-      --panel-2: #0b1710;
-      --line: #385441;
-      --gold: #e7c866;
+      --felt: #0f2b1d;
+      --felt-2: #123524;
+      --line: #3f5d4a;
+      --gold: #e6c45d;
       --text: #f5f1df;
-      --muted: #aeb9ad;
-      --green: #67c98b;
-      --red: #df7068;
-      --blue: #80b6ff;
+      --muted: #aab5a9;
+      --accent: #6dd39a;
+      --danger: #e07b73;
+      --pond: #0a1911;
+      --tile-face: #f7f2dc;
+      --tile-edge: #d2c79f;
+      --tile-text: #171b16;
+      --word1: #ff8a80;
+      --word2: #ffd180;
+      --word3: #ffff8d;
+      --word4: #a7ffeb;
+      --word5: #82b1ff;
+      --word6: #b388ff;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: radial-gradient(circle at top, #1a3828, #07110c 65%);
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1b402c, #07110c 68%);
       color: var(--text);
       font-family: system-ui, -apple-system, "Yu Gothic", Meiryo, sans-serif;
-      min-height: 100vh;
     }
     button, input { font: inherit; }
     button {
@@ -36,12 +45,12 @@
       padding: 10px 14px;
       font-weight: 800;
     }
-    button:hover { filter: brightness(1.12); }
+    button:hover { filter: brightness(1.08); }
     button:disabled { opacity: .38; cursor: not-allowed; }
-    .primary { background: #896b20; border-color: #d8bd62; }
-    .danger { background: #522724; border-color: #8d4a45; }
+    .primary { background: #8c6d23; border-color: #d6bb62; }
+    .danger { background: #542826; border-color: #8d4a45; }
     .ghost { background: transparent; }
-    .wrap { max-width: 1450px; margin: auto; padding: 18px; }
+    .wrap { max-width: 1480px; margin: auto; padding: 18px; }
     .card {
       background: rgba(16, 32, 23, .94);
       border: 1px solid var(--line);
@@ -57,44 +66,67 @@
     .row button { flex: 0 0 auto; }
     .title { font-size: 30px; font-weight: 950; color: var(--gold); letter-spacing: .05em; }
     .sub { color: var(--muted); font-size: 13px; }
-    .small { font-size: 12px; color: var(--muted); }
-    .hint { color: var(--green); font-weight: 800; }
-    .warn { color: #efb8a8; font-weight: 800; }
+    .small { color: var(--muted); font-size: 12px; }
+    .hint { color: var(--accent); font-weight: 800; }
+    .warn { color: #f0b5a5; font-weight: 800; }
     .roomcode { font-size: 32px; font-weight: 950; letter-spacing: .18em; color: var(--gold); padding: 10px 0; }
     .board { display: grid; grid-template-columns: 1fr 320px; gap: 14px; }
-    .table { min-height: 650px; position: relative; }
-    .players { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .player { padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); }
-    .player.me { border-color: var(--gold); }
-    .player.active { box-shadow: 0 0 0 2px #67c98b55; }
-    .player.ronable { box-shadow: 0 0 0 2px #df706855, 0 0 30px #df706822; }
-    .host-badge {
-      display: inline-block;
-      margin-left: 6px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #314f84;
-      color: #e9f0ff;
-      font-size: 10px;
-      font-weight: 900;
-      letter-spacing: .08em;
+    .table { min-height: 760px; }
+    .table-layout {
+      display: grid;
+      grid-template-columns: 180px 1fr 180px;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+      align-items: stretch;
     }
-    .river, .preview {
-      min-height: 110px;
-      border: 1px dashed #53685a;
-      border-radius: 12px;
+    .seat {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(11, 23, 16, .96);
       padding: 10px;
-      margin-top: 12px;
-      background: #0a1510;
+      min-height: 84px;
+    }
+    .seat.active { box-shadow: 0 0 0 2px #6dd39a55; }
+    .seat.me { border-color: var(--gold); }
+    .seatTop { grid-column: 2; grid-row: 1; }
+    .seatLeft { grid-column: 1; grid-row: 2; align-self: center; }
+    .seatCenter {
+      grid-column: 2;
+      grid-row: 2;
+      background: radial-gradient(circle at center, var(--felt-2), var(--felt));
+      border: 1px solid #496b57;
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: inset 0 0 0 1px #ffffff0f, inset 0 0 30px #0000002e;
+      min-height: 380px;
+    }
+    .seatRight { grid-column: 3; grid-row: 2; align-self: center; }
+    .seatBottom { grid-column: 2; grid-row: 3; }
+    .centerHead { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .pond {
+      background: rgba(7, 16, 11, .72);
+      border: 1px solid #526b58;
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 245px;
+    }
+    .pondTitle { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .riverGrid {
+      display: grid;
+      grid-template-columns: repeat(6, 42px);
+      gap: 7px;
+      align-content: start;
+      min-height: 175px;
     }
     .tiles { display: flex; gap: 7px; flex-wrap: wrap; align-items: end; }
+    .handzone { margin-top: 16px; }
     .tile {
       width: 48px;
       height: 58px;
       border-radius: 8px;
-      border: 1px solid #d9cfaa;
-      background: #f7f2dc;
-      color: #171b16;
+      border: 1px solid var(--tile-edge);
+      background: var(--tile-face);
+      color: var(--tile-text);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -103,12 +135,26 @@
       user-select: none;
       box-shadow: 0 3px 0 #b6ad91;
       position: relative;
+      transition: transform .12s ease, box-shadow .12s ease;
     }
     .tile:hover { transform: translateY(-2px); }
     .tile.selected { outline: 3px solid var(--gold); transform: translateY(-7px); }
     .tile .idx { position: absolute; bottom: 1px; right: 4px; font-size: 9px; color: #777; font-weight: 600; }
     .discard { width: 42px; height: 49px; font-size: 23px; }
-    .handzone { margin-top: 18px; }
+    .word0 { box-shadow: inset 0 -8px 0 var(--word1), 0 3px 0 #b6ad91; }
+    .word1 { box-shadow: inset 0 -8px 0 var(--word2), 0 3px 0 #b6ad91; }
+    .word2 { box-shadow: inset 0 -8px 0 var(--word3), 0 3px 0 #b6ad91; }
+    .word3 { box-shadow: inset 0 -8px 0 var(--word4), 0 3px 0 #b6ad91; }
+    .word4 { box-shadow: inset 0 -8px 0 var(--word5), 0 3px 0 #b6ad91; }
+    .word5 { box-shadow: inset 0 -8px 0 var(--word6), 0 3px 0 #b6ad91; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .legendItem { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-weight: 800; }
+    .legend0 { background: color-mix(in srgb, var(--word1) 28%, transparent); }
+    .legend1 { background: color-mix(in srgb, var(--word2) 28%, transparent); }
+    .legend2 { background: color-mix(in srgb, var(--word3) 28%, transparent); color: #393400; }
+    .legend3 { background: color-mix(in srgb, var(--word4) 28%, transparent); color: #00352e; }
+    .legend4 { background: color-mix(in srgb, var(--word5) 28%, transparent); }
+    .legend5 { background: color-mix(in srgb, var(--word6) 28%, transparent); }
     .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     .actions button { min-width: 86px; }
     .side h3 { margin: 6px 0 8px; }
@@ -116,18 +162,20 @@
     .log div { padding: 3px 0; border-bottom: 1px solid #203426; }
     .book { max-height: 260px; overflow: auto; }
     .word { display: inline-block; margin: 4px; padding: 5px 8px; border: 1px solid #48614e; border-radius: 999px; }
+    .statusLine { margin-top: 8px; min-height: 20px; }
     .modal { position: fixed; inset: 0; background: #0009; display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 20; }
     .modal > .card { max-width: 760px; width: 100%; }
     .winner { font-size: 34px; color: var(--gold); font-weight: 950; }
-    .pulse { animation: pulse 1.05s infinite; }
-    @keyframes pulse {
-      0% { transform: scale(1); filter: brightness(1); }
-      50% { transform: scale(1.04); filter: brightness(1.15); }
-      100% { transform: scale(1); filter: brightness(1); }
-    }
-    @media (max-width: 900px) {
+    @media (max-width: 980px) {
       .board { grid-template-columns: 1fr; }
-      .table { min-height: 500px; }
+      .table-layout { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto auto; }
+      .seatTop, .seatLeft, .seatCenter, .seatRight, .seatBottom { grid-column: 1; }
+      .seatTop { grid-row: 1; }
+      .seatLeft { grid-row: 2; }
+      .seatCenter { grid-row: 3; }
+      .seatRight { grid-row: 4; }
+      .seatBottom { grid-row: 5; }
+      .riverGrid { grid-template-columns: repeat(6, 42px); justify-content: center; }
       .tile { width: 43px; height: 53px; font-size: 24px; }
     }
   </style>
@@ -136,7 +184,7 @@
   <div id="app" class="wrap">
     <section id="lobby" class="card lobby">
       <div class="title">ひらがな麻雀</div>
-      <p class="sub">2〜4人オンライン対戦 / チーなし・ポンなし / ロンとツモのみ</p>
+      <p class="sub">2〜4人オンライン対戦 / チーなし・ポンなし / ロン・ツモ・流局のみ</p>
       <div class="grid">
         <label>名前<input id="name" maxlength="12" placeholder="プレイヤー名"></label>
         <div class="row">
@@ -161,16 +209,24 @@
 
       <div class="board">
         <main class="card table">
-          <div class="players" id="players"></div>
-
-          <div class="preview">
-            <b>成立語プレビュー / 待ち牌</b>
-            <div id="previewNow" style="margin-top:8px"></div>
-          </div>
-
-          <div class="river">
-            <b>公開捨て牌</b>
-            <div id="river" class="tiles" style="margin-top:8px"></div>
+          <div class="table-layout">
+            <div id="seatTop" class="seat seatTop"></div>
+            <div id="seatLeft" class="seat seatLeft"></div>
+            <div class="seatCenter">
+              <div class="centerHead">
+                <div><b>場</b><div id="lastAction" class="small" style="margin-top:4px"></div></div>
+                <div class="small">山 <span id="wallCount">0</span> 枚</div>
+              </div>
+              <div class="pond">
+                <div class="pondTitle">
+                  <b>河（かわ）</b>
+                  <span class="small">捨て牌</span>
+                </div>
+                <div id="river" class="riverGrid"></div>
+              </div>
+            </div>
+            <div id="seatRight" class="seat seatRight"></div>
+            <div id="seatBottom" class="seat seatBottom"></div>
           </div>
 
           <div class="handzone">
@@ -179,15 +235,16 @@
               <span id="handInfo" class="small"></span>
             </div>
             <div id="hand" class="tiles" style="margin-top:10px"></div>
+            <div id="wordLegend" class="legend"></div>
             <div id="actions" class="actions"></div>
-            <div id="hint" class="small" style="margin-top:8px"></div>
+            <div id="hint" class="statusLine small"></div>
           </div>
         </main>
 
         <aside class="card side">
           <h3>部屋の戦績</h3>
           <div id="scores"></div>
-          <h3>単語帳</h3>
+          <h3>登録語</h3>
           <div id="book" class="book"></div>
           <h3>ログ</h3>
           <div id="log" class="log"></div>
@@ -204,82 +261,31 @@
   </div>
 
   <script>
-    // ===== ひらがな麻雀 V4 =====
-    // 辞書本文の転載ではなく、ゲーム用の登録語リストを使用します。
+    // ===== ひらがな麻雀 V5 =====
+    // 語彙は「ひらがな 2文字 / 3文字」の一般名詞中心のみを採用。
+    // 濁音・半濁音・拗音・促音（例: が / ぱ / ゃ / っ）は 1牌 として扱い、牌クリックで変換します。
 
     const BASE = [...'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'];
-    const WORDS = new Set(`
-あい あう あお あか あき あく あけ あさ あし あす あせ あた あち あつ あと あな あに あね あの あま
-あみ あむ あめ あも あや あら あり あれ あわ あん いい いえ いき いく いけ いし いす いた いち いつ
-いと いぬ いね いの いま いみ いむ いめ いや いる いれ いろ いわ いん うえ うお うか うき うく うけ
-うし うす うた うち うつ うで うと うな うに うね うの うま うみ うむ うめ うら うり うる うれ うろ
-うわ うん えい えき えく えこ えさ えし えす えた えち えつ えに えの えま えみ えむ えめ えも える
-えん おい おう おお おか おき おく おけ おさ おし おす おそ おた おち おつ おと おな おに おの おは
-おひ おふ おへ おほ おま おみ おめ おも おや およ おら おり おる おれ おわ おん かい かう かお かき
-かく かけ かさ かし かす かた かち かつ かて かと かな かに かね かの かま かみ かむ かめ かも から
-かり かる かれ かわ かん きい きく きけ きし きす きた きち きつ きて きと きな きに きの きは きひ
-きふ きへ きほ きま きみ きむ きめ きも きや きよ きら きり きる きれ きろ きわ きん くい くう くえ
-くき くさ くし くす くせ くそ くた くち くつ くに くね くの くま くみ くむ くめ くも くら くり くる
-くれ くろ くわ くん けい けい けき けさ けし けす けた けち けつ けと けな けに けの けま けみ けむ
-けめ けも けり ける けれ けん こい こう こえ こき こく こけ こし こす こせ こそ こと こな こね この
-こは こひ こふ こへ こほ こま こみ こむ こめ こも ころ こわ こん さい さく さけ さし さす させ さそ
-さた さち さつ さて さと さな さに さの さは さひ さふ さへ さほ さま さみ さむ さめ さも さら さり
-さる され さわ さん しい しく しけ しし しす した しち しつ しと しな しに しの しは しひ しふ しへ
-しほ しま しみ しむ しめ しも しゃ しゅ しょ しら しり しる しれ しろ しわ しん すい すう すえ すき
-すく すけ すし すす すせ すそ すた すち すつ すて すと すな すに すの すは すひ すふ すへ すほ すま
-すみ すむ すめ すも する すれ すろ すわ すん せい せき せく せけ せし せす せた せち せつ せと せな
-せに せの せま せみ せむ せめ せも せり せる せん そい そう そく そけ そし そす そた そち そつ そと
-そな そに その そは そひ そふ そへ そほ そま そみ そむ そめ そも そら そり そる それ そろ そわ そん
-たい たう たえ たか たき たく たけ たこ たし たす たせ たそ たち たつ たて たと たな たに たね たの
-たは たひ たふ たへ たほ たま たみ ため たも たり たる たれ たわ たん ちい ちえ ちか ちき ちく ちけ
-ちし ちす ちせ ちそ ちた ちつ ちて ちと ちな ちに ちぬ ちの ちは ちま ちみ ちむ ちめ ちも ちゃ ちゅ
-ちょ ちら ちり ちる ちれ ちろ ちわ ちん つい つう つえ つか つき つく つけ つこ つし つす つせ つそ
-つた つち つつ つて つと つな つに つね つの つは つひ つふ つへ つほ つま つみ つむ つめ つも つや
-つゆ つよ つら つり つる つれ つわ つん てい てき てく てけ てこ てし てす てつ てと てな てに ての
-ては てひ てふ てへ てほ てま てみ ても てら てり てる てれ てろ てわ てん とい とう とえ とか とき
-とく とけ とこ とし とす とせ とそ とた とち とつ とて とと とな とに とね との とひ とふ とへ とほ
-とま とみ とむ とめ とも とら とり とる とれ とろ とわ とん なか なき なく なけ なし なす なせ なそ
-なつ なて なた なの なに なぬ なは なひ なふ なへ なほ なま なみ なむ なめ なも なら なり なる なれ
-なろ なわ なん にあ にい にう にえ にお にく にこ にし にす にせ にそ にた にち につ にて にと にな
-にぬ にね にの には にひ にふ にへ にほ にま にみ にむ にめ にも にや にゆ によ にら にり にる にれ
-にろ にわ にん ぬの ぬま ぬり ねこ ねつ ねる ねん のう のき のく のけ のこ のし のす のせ のそ のた
-のち のつ のて のと のな のに のは のひ のふ のへ のほ のま のみ のむ のめ のも のら のり のる のれ
-のろ のわ のん はい はう はえ はお はか はき はく はけ はこ はし はす はせ はそ はた はち はつ はて
-はと はな はに はぬ はね はの はひ はふ はへ はほ はま はみ はむ はめ はも はや はゆ はよ はら はり
-はる はれ はろ はわ はん ひい ひか ひき ひく ひけ ひこ ひし ひす ひせ ひそ ひた ひち ひつ ひて ひと
-ひな ひに ひぬ ひね ひの ひは ひふ ひへ ひほ ひま ひみ ひむ ひめ ひも ひゃ ひゅ ひょ ひら ひり ひる
-ひれ ひろ ひわ ひん ふう ふえ ふか ふき ふく ふけ ふこ ふし ふす ふせ ふそ ふた ふち ふつ ふて ふと
-ふな ふに ふね ふの ふは ふひ ふへ ふほ ふま ふみ ふむ ふめ ふも ふら ふり ふる ふれ ふろ ふわ ふん
-へい へき へこ へし へす へた へち へつ へと へな へね への へや へり へる へれ へん ほう ほか ほき
-ほく ほけ ほこ ほし ほす ほせ ほそ ほた ほち ほつ ほて ほと ほな ほね ほの ほは ほひ ほふ ほへ ほま
-ほみ ほむ ほめ ほも ほら ほり ほる ほれ ほろ ほわ ほん まあ まえ まか まき まく まけ まこ まさ まし
-ます また まち まつ まて まと まな まに まぬ まね まの まは まひ まふ まへ まほ まま まみ まむ まめ
-まも まら まり まる まれ まろ まわ まん みえ みか みき みく みけ みこ みし みす みせ みそ みた みち
-みつ みて みと みな みに みぬ みね みの みは みひ みふ みへ みほ みま みむ みめ みも みや みゆ みよ
-みら みり みる みれ みろ みわ みん むい むえ むか むき むく むけ むこ むし むす むせ むそ むた むち
-むつ むて むと むな むね むの むら むり むる むれ むろ むわ むん めい めか めき めく めけ めこ めし
-めす めせ めそ めた めち めつ めて めと めな めに めね めの めは めひ めふ めへ めほ めま めみ めむ
-めも めや めゆ めよ めら めり める めれ めろ めわ めん もい もう もえ もか もき もく もけ もし もす
-もせ もそ もた もち もつ もて もと もな もの もは もひ もふ もへ もほ もま もみ もむ もめ もも もや
-もよ もら もり もる もれ もろ もわ もん やま やみ やむ やめ やも やら やり やる やれ やわ やん ゆえ
-ゆか ゆき ゆく ゆけ ゆこ ゆし ゆす ゆせ ゆそ ゆた ゆつ ゆて ゆと ゆな ゆに ゆの ゆは ゆめ ゆら ゆり
-ゆる ゆれ ゆわ ゆん よい よう よえ よか よき よく よけ よこ よし よす よせ よそ よた よち よつ よて
-よと よな よに よね よの よは よひ よふ よへ よほ よま よみ よむ よめ よも よら より よる よれ よろ
-よわ よん らい らく らし らす らせ らそ らた らち らつ らて らと らな らに らの らは らひ らふ らへ
-らほ らま らみ らむ らめ らも らや らゆ らよ らり らる られ らろ らわ らん りい りえ りか りき りく
-りけ りこ りし りす りせ りそ りた りち りつ りて りと りな りに りぬ りね りの りは りひ りふ りへ
-りほ りま りみ りむ りめ りも りや りゆ りよ りら りる りれ りろ りわ りん るい るう るえ るか るき
-るく るけ るこ るし るす るせ るそ るた るち るつ るて ると るな るに るね るの るは るひ るふ るへ
-るほ るま るみ るむ るめ るも るら るり るる るれ るろ るわ るん れい れき れく れけ れこ れし れす
-れせ れそ れた れち れつ れて れと れな れに れね れの れは れひ れふ れへ れほ れま れみ れむ れめ
-れも れら れり れる れれ れろ れわ れん ろい ろう ろえ ろか ろき ろく ろけ ろこ ろし ろす ろせ ろそ
-ろた ろち ろつ ろて ろと ろな ろに ろね ろの ろは ろひ ろふ ろへ ろほ ろま ろみ ろむ ろめ ろも ろら
-ろり ろる ろれ ろろ ろわ ろん わか わき わく わけ わし わす わせ わた わち わつ わて わと わな わに
-わぬ わね わの わは わひ わふ わへ わほ わま わみ わむ わめ わも わら わり わる われ わろ わん をん
-んあ んい んう んえ んお んか んき んく んけ んこ んさ んし んす んせ んそ んた んち んつ んて んと
-んな んに んぬ んね んの んは んひ んふ んへ んほ んま んみ んむ んめ んも んや んゆ んよ んら んり
-んる んれ んろ んわ んを ん
-`.split(/\s+/));
+    const RAW_WORDS = `
+あき あし あせ あな あみ あめ あわ いえ いけ いし いす いと いぬ いね いも いわ うし うた
+うで うに うま うみ えき えだ えび えり おか おけ おと おに おゆ かい かお かぎ かさ かた
+かべ かみ かゆ かわ きく きし きた きぬ きり くき くさ くし くつ くに くも こえ こけ こな
+こめ さけ さと さば しか しま しる すし すみ せき せみ そら たい たこ たに たね たま つき
+つち つの つゆ てら とら とり なし なべ なみ にく にわ ぬの はし はた はな はね はら ひざ
+ひと ひも ふえ ふね ふろ へび へや ほし ほね ほん まち まど まめ まゆ みず みそ みち みみ
+むし むね めし もじ もり やま ゆき ゆめ よる りく わた わに あらし いちご いなか いのち いわし えのぐ
+えほん おかし おとな おやつ かえる かがみ かもめ からす かわら きつね きもの くじら くるま けしき けむり こいぬ ことり こども
+こねこ こむぎ さかな さくら さとう しずく すいか すずめ せかい せなか たぬき たまご たわし つくえ つばき つばめ つみき てがみ
+とけい とんぼ なすび なみだ ねずみ のはら はさみ はっぱ はなび ひつじ ひのき ふすま ふたご へいわ ほうき ほたて ほたる ぼたん
+まくら まつり みかん みどり みのり みらい めがね めだか もみじ やかん やさい ゆうひ ゆかた ゆびわ よもぎ らっぱ りんご わかめ
+わさび わたげ
+`.trim().split(/\s+/);
+    const WORDS = [...new Set(RAW_WORDS.filter(w => /^[ぁ-ゖ]+$/.test(w) && (w.length === 2 || w.length === 3)))];
+    const WORDS_BY_LEN = {
+      2: WORDS.filter(w => w.length === 2),
+      3: WORDS.filter(w => w.length === 3)
+    };
+    const WORD_SET = new Set(WORDS);
 
     const TRANS = {
       'あ':['あ','ぁ'],'い':['い','ぃ'],'う':['う','ぅ','ゔ'],'え':['え','ぇ'],'お':['お','ぉ'],
@@ -292,10 +298,9 @@
 
     const CYCLE = {};
     Object.entries(TRANS).forEach(([base, arr]) => arr.forEach((x, i) => CYCLE[x] = arr[(i + 1) % arr.length]));
-    const ALL_TILES = [...new Set([...BASE, ...Object.values(TRANS).flat()])];
-    const WALL_BASE = [...BASE];
-    const STORAGE_KEY = 'hiragana-mahjong-v4-session';
+    const STORAGE_KEY = 'hiragana-mahjong-v5-session';
     const HOST_LEFT_MESSAGE = 'ホストが切断されたため、この対局は終了しました。ページを再読み込みして新しい部屋を作り直してください。';
+    const WORD_COLORS = ['word0','word1','word2','word3','word4','word5'];
 
     const uid = () => Math.random().toString(36).slice(2, 9);
     const shuffle = arr => {
@@ -329,7 +334,7 @@
 
     function makeWall() {
       const wall = [];
-      for (const c of WALL_BASE) for (let i = 0; i < 4; i++) wall.push(c);
+      for (const c of BASE) for (let i = 0; i < 4; i++) wall.push(c);
       return shuffle(wall);
     }
 
@@ -337,7 +342,6 @@
       return {
         players: [],
         hands: {},
-        melds: {},
         discards: [],
         wall: [],
         current: 0,
@@ -345,7 +349,6 @@
         started: false,
         books: {},
         wins: {},
-        round: 1,
         lastAction: '',
         pending: null,
         result: null,
@@ -353,16 +356,9 @@
       };
     }
 
-    function name() {
-      return ($('name').value || '名無し').trim().slice(0, 12);
-    }
-
     function readStoredSession() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || {};
-      } catch {
-        return {};
-      }
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || {}; }
+      catch { return {}; }
     }
 
     function writeStoredSession(patch) {
@@ -384,11 +380,15 @@
     }
 
     function rememberSession(extra = {}) {
-      writeStoredSession({ name: name(), roomCode, playerToken, ...extra });
+      writeStoredSession({ name: playerNameInput(), roomCode, playerToken, ...extra });
+    }
+
+    function playerNameInput() {
+      return ($('name').value || '名無し').trim().slice(0, 12);
     }
 
     function hostPeerId(code) {
-      return 'hiragana-mahjong-v4-' + code.toLowerCase();
+      return 'hiragana-mahjong-v5-' + code.toLowerCase();
     }
 
     function initPeer(id, cb) {
@@ -419,13 +419,11 @@
       return {
         players: S.players,
         discards: S.discards,
-        melds: S.melds,
         current: S.current,
         drawn: S.drawn,
         started: S.started,
         books: S.books,
         wins: S.wins,
-        round: S.round,
         lastAction: S.lastAction,
         pending: S.pending,
         result: S.result,
@@ -446,6 +444,14 @@
       }
     }
 
+    function playerName(id) {
+      return S.players.find(p => p.id === id)?.name || '名無し';
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+    }
+
     function replaceIdInCollection(col, fromId, toId) {
       if (col && Object.prototype.hasOwnProperty.call(col, fromId)) {
         col[toId] = col[fromId];
@@ -460,7 +466,6 @@
       player.connected = true;
       player.name = (displayName || player.name || '名無し').slice(0, 12);
       replaceIdInCollection(S.hands, oldId, newId);
-      replaceIdInCollection(S.melds, oldId, newId);
       replaceIdInCollection(S.books, oldId, newId);
       replaceIdInCollection(S.wins, oldId, newId);
       if (S.discards) S.discards.forEach(d => { if (d.p === oldId) d.p = newId; });
@@ -475,80 +480,93 @@
       return true;
     }
 
+    function countTiles(arr) {
+      const counts = {};
+      arr.forEach(x => counts[x] = (counts[x] || 0) + 1);
+      return counts;
+    }
+
+    function canMakeWord(counts, word) {
+      const need = {};
+      for (const ch of word) need[ch] = (need[ch] || 0) + 1;
+      return Object.entries(need).every(([ch, n]) => (counts[ch] || 0) >= n);
+    }
+
+    function removeWord(counts, word) {
+      const next = { ...counts };
+      for (const ch of word) next[ch]--;
+      return next;
+    }
+
+    function scoreWords(words) {
+      return words.reduce((n, w) => n + w.length, 0);
+    }
+
+    function betterResult(a, b) {
+      if (!a) return b;
+      if (!b) return a;
+      const scoreA = scoreWords(a.words);
+      const scoreB = scoreWords(b.words);
+      if (scoreB !== scoreA) return scoreB > scoreA ? b : a;
+      if (b.words.length !== a.words.length) return b.words.length > a.words.length ? b : a;
+      return a.words.join('|') <= b.words.join('|') ? a : b;
+    }
+
+    function bestWordCoverFromCounts(counts, memo = new Map()) {
+      const key = Object.keys(counts).sort().map(k => `${k}${counts[k]}`).join('');
+      if (memo.has(key)) return memo.get(key);
+      let best = { words: [] };
+      const candidates = WORDS.filter(w => canMakeWord(counts, w)).sort((a, b) => b.length - a.length || a.localeCompare(b, 'ja'));
+      for (const word of candidates) {
+        const nextCounts = removeWord(counts, word);
+        const next = bestWordCoverFromCounts(nextCounts, memo);
+        const result = { words: [word, ...next.words] };
+        best = betterResult(best, result);
+      }
+      memo.set(key, best);
+      return best;
+    }
+
+    function bestWordCover(hand) {
+      const result = bestWordCoverFromCounts(countTiles(hand));
+      return { words: result.words.slice().sort((a, b) => b.length - a.length || a.localeCompare(b, 'ja')) };
+    }
+
+    function canCompleteHand(hand) {
+      const cover = bestWordCover(hand);
+      return scoreWords(cover.words) === hand.length ? cover : null;
+    }
+
+    function assignWordClasses(hand, words) {
+      const idxMap = {};
+      hand.forEach((ch, i) => {
+        if (!idxMap[ch]) idxMap[ch] = [];
+        idxMap[ch].push(i);
+      });
+      const classes = Array(hand.length).fill('');
+      const legend = [];
+      words.forEach((word, wi) => {
+        const cls = WORD_COLORS[wi % WORD_COLORS.length];
+        for (const ch of word) {
+          const arr = idxMap[ch] || [];
+          const index = arr.shift();
+          if (index != null) classes[index] = cls;
+        }
+        legend.push({ word, cls, idx: wi % WORD_COLORS.length });
+      });
+      return { classes, legend };
+    }
+
     function currentPlayer() {
       return S.players[S.current]?.id;
     }
 
-    function isWord3(a, b, c) {
-      return WORDS.has(a + b) && WORDS.has(b + c);
-    }
-
-    function canWin(arr, id = myId) {
-      const exposed = (S?.melds?.[id] || []).length;
-      const need = 4 - exposed;
-      return !!partition(arr, need).length;
-    }
-
-    function partition(arr, needGroups = 4) {
-      if (arr.length !== needGroups * 3 + 2) return [];
-      const counts = {};
-      arr.forEach(x => counts[x] = (counts[x] || 0) + 1);
-      const keys = Object.keys(counts);
-      for (const pair of keys) {
-        if (counts[pair] < 2) continue;
-        const copy = { ...counts };
-        copy[pair] -= 2;
-        const groups = [];
-        if (makeGroups(copy, groups) && groups.length === needGroups) return [...groups, pair + pair];
-      }
-      return [];
-    }
-
-    function makeGroups(counts, out) {
-      if (out.length > 4) return false;
-      const first = Object.keys(counts).find(x => counts[x] > 0);
-      if (!first) return true;
-      counts[first]--;
-      const seconds = Object.keys(counts).filter(x => counts[x] > 0);
-      for (const second of seconds) {
-        if (!WORDS.has(first + second)) continue;
-        counts[second]--;
-        const thirds = Object.keys(counts).filter(x => counts[x] > 0);
-        for (const third of thirds) {
-          if (!isWord3(first, second, third)) continue;
-          counts[third]--;
-          out.push(first + second + third);
-          if (makeGroups(counts, out)) return true;
-          out.pop();
-          counts[third]++;
-        }
-        counts[second]++;
-      }
-      counts[first]++;
-      return false;
-    }
-
-    function getWinningTiles(arr, id = myId) {
-      const waits = [];
-      for (const tile of ALL_TILES) {
-        if (canWin([...arr, tile], id) && !waits.includes(tile)) waits.push(tile);
-      }
-      return waits;
-    }
-
-    function evaluateTenpaiPlayers() {
-      return S.players.map(p => {
-        const waits = getWinningTiles(S.hands[p.id] || [], p.id);
-        return { id: p.id, name: p.name, waits, state: waits.length ? 'テンパイ' : 'ノーテン' };
-      });
-    }
-
-    function finishDraw(reason = '山札が尽きたため流局') {
+    function finishDraw(reason = '山札が尽きたため流局です。') {
       S.started = false;
       S.drawn = false;
       S.pending = null;
       S.lastAction = reason;
-      S.result = { type: 'draw', reason, tenpai: evaluateTenpaiPlayers(), sig: uid() };
+      S.result = { type: 'draw', reason, sig: uid() };
     }
 
     function autoDrawCurrent() {
@@ -560,12 +578,8 @@
       }
       S.hands[id].push(S.wall.pop());
       S.drawn = true;
-      S.lastAction = `${playerName(id)}が自動ツモ。`;
+      S.lastAction = `${playerName(id)}がツモ。`;
       return true;
-    }
-
-    function drawFor(id) {
-      return currentPlayer() === id && autoDrawCurrent();
     }
 
     function advanceTurn() {
@@ -574,7 +588,7 @@
       S.current = (S.current + 1) % S.players.length;
       S.drawn = false;
       const drew = autoDrawCurrent();
-      if (drew && S.started) S.lastAction = `${playerName(currentPlayer())}の番。自動ツモ。`;
+      if (drew && S.started) S.lastAction = `${playerName(currentPlayer())}の手番。`;
     }
 
     function discardFor(id, index) {
@@ -584,118 +598,20 @@
       const tile = hand.splice(index, 1)[0];
       S.discards.push({ p: id, tile });
       S.drawn = false;
-      const ron = S.players
-        .filter(p => p.id !== id)
-        .filter(p => canWin([...S.hands[p.id], tile], p.id))
-        .map(p => p.id);
+      const ron = S.players.filter(p => p.id !== id).filter(p => canCompleteHand([...S.hands[p.id], tile])).map(p => p.id);
       S.pending = { discardBy: id, tile, ron, passed: [] };
-      S.lastAction = `${playerName(id)}が「${tile}」を捨てた。`;
-      if (!S.pending.ron.length) advanceTurn();
+      S.lastAction = `${playerName(id)}が「${tile}」を打牌。`;
+      if (!ron.length) advanceTurn();
       broadcast();
       return true;
     }
 
-    function resultBreakdownHtml(words, pair) {
-      const rows = words.map((w, i) =>
-        `<div><b>語${i + 1}</b> <span class="word">${escapeHtml(w)}</span> <span class="small">(${escapeHtml(w.slice(0, 2))} / ${escapeHtml(w.slice(1, 3))})</span></div>`
-      ).join('');
-      const pairRow = pair ? `<div><b>対子</b> <span class="word">${escapeHtml(pair)}</span></div>` : '';
-      return rows || pairRow ? `<div class="grid" style="margin-top:10px">${rows}${pairRow}</div>` : '';
-    }
-
-    function buildWinningPreview(hand, id = myId, extraTile = '') {
-      const full = extraTile ? [...hand, extraTile] : [...hand];
-      const exposed = (S.melds[id] || []).length;
-      const parts = partition(full, 4 - exposed);
-      if (!parts.length) return null;
-      return {
-        words: parts.filter(w => w.length === 3),
-        pair: parts.find(w => w.length === 2) || '',
-        extraTile
-      };
-    }
-
-    function miniTilesHtml(list) {
-      if (!list.length) return '<div class="small" style="margin-top:8px">待ちなし</div>';
-      return `<div class="tiles" style="margin-top:8px">${list.map(x => `<div class="tile discard">${escapeHtml(x)}</div>`).join('')}</div>`;
-    }
-
-    function discardPreviewData(hand, id = myId, index = selected) {
-      if (index == null || index < 0 || index >= hand.length) return null;
-      const next = [...hand];
-      const tile = next.splice(index, 1)[0];
-      const waits = getWinningTiles(next, id);
-      return { tile, waits, state: waits.length ? 'テンパイ' : 'ノーテン' };
-    }
-
-    function previewPanelHtml(hand) {
-      if (roomClosed) return `<div class="warn">${escapeHtml(HOST_LEFT_MESSAGE)}</div>`;
-
-      if (S.pending?.ron?.includes(myId)) {
-        const preview = buildWinningPreview(hand, myId, S.pending.tile);
-        return `<div class="warn pulse">ロン可能！ 牌 ${escapeHtml(S.pending.tile)}</div>${preview ? resultBreakdownHtml(preview.words, preview.pair) : ''}`;
-      }
-
-      if (currentPlayer() === myId && S.drawn && canWin(hand, myId)) {
-        const preview = buildWinningPreview(hand, myId);
-        return `<div class="hint">ツモ可能です。</div>${preview ? resultBreakdownHtml(preview.words, preview.pair) : ''}`;
-      }
-
-      if (currentPlayer() === myId && S.drawn) {
-        const info = discardPreviewData(hand, myId, selected);
-        if (info) {
-          return `<div><b>${escapeHtml(info.tile)}</b> を切ると <span class="${info.waits.length ? 'hint' : 'warn'}">${info.state}</span></div><div class="small">待ち牌 ${info.waits.length}種</div>${miniTilesHtml(info.waits)}`;
-        }
-        return '<div class="small">牌を選ぶと、捨てたあとの待ち牌を表示します。</div>';
-      }
-
-      const waits = getWinningTiles(hand, myId);
-      if (hand.length % 3 === 1 && waits.length) {
-        return `<div class="hint">現在テンパイです。</div><div class="small">待ち牌 ${waits.length}種</div>${miniTilesHtml(waits)}`;
-      }
-
-      return '<div class="small">プレビューは自分の手番中に表示されます。</div>';
-    }
-
-    function finishWin(id, kind, from) {
-      const winTile = kind === 'ロン' ? S.pending?.tile : null;
-      const exposed = (S.melds[id] || []).length;
-      const fullHand = kind === 'ロン' && winTile ? [...S.hands[id], winTile] : [...S.hands[id]];
-      const parts = partition(fullHand, 4 - exposed);
-      if (!parts.length) return;
-      const words = parts.filter(w => w.length === 3);
-      const pair = parts.find(w => w.length === 2) || '';
-      const book = S.books[id] || [];
-      words.forEach(w => { if (!book.includes(w)) book.push(w); });
-      S.books[id] = book;
-      S.wins[id] = (S.wins[id] || 0) + 1;
-      S.lastAction = `${playerName(id)}が${kind}！`;
-      S.started = false;
-      S.pending = null;
-      S.result = { type: 'win', winner: id, kind, from, winTile, words, pair, wins: S.wins[id], sig: uid() };
-    }
-
-    function playerName(id) {
-      return S.players.find(p => p.id === id)?.name || '名無し';
-    }
-
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[m]);
-    }
-
     function resultModalHtml() {
       if (!S?.result) return '';
-      if (S.result.type === 'draw') {
-        const rows = (S.result.tenpai || []).map(p =>
-          `<div><b>${escapeHtml(p.name)}</b> <span class="${p.waits?.length ? 'hint' : 'warn'}">${escapeHtml(p.state || 'ノーテン')}</span>${p.waits?.length ? `<div class="small">待ち: ${escapeHtml(p.waits.join(' '))}</div>` : ''}</div>`
-        ).join('');
-        return `<div class="winner">流局</div><p>${escapeHtml(S.result.reason || '流局です。')}</p><div class="grid" style="margin-top:10px">${rows}</div><p>部屋の勝利数はそのままです。</p>`;
-      }
-      if (S.result.type === 'notice') {
-        return `<div class="winner">対局終了</div><p>${escapeHtml(S.result.reason || HOST_LEFT_MESSAGE)}</p>`;
-      }
-      const winnerName = playerName(S.result.winner);
-      return `<div class="winner">${escapeHtml(winnerName)}　${escapeHtml(S.result.kind || '和了')}！</div><p>${S.result.kind === 'ロン' && S.result.winTile ? `ロン牌：${escapeHtml(S.result.winTile)} / ` : ''}この部屋の勝利数：${S.result.wins || 0}</p>${resultBreakdownHtml(S.result.words || [], S.result.pair || '')}`;
+      if (S.result.type === 'draw') return `<div class="winner">流局</div><p>${escapeHtml(S.result.reason || '流局です。')}</p>`;
+      if (S.result.type === 'notice') return `<div class="winner">対局終了</div><p>${escapeHtml(S.result.reason || HOST_LEFT_MESSAGE)}</p>`;
+      const winWords = S.result.words || [];
+      return `<div class="winner">${escapeHtml(playerName(S.result.winner))}　${escapeHtml(S.result.kind)}！</div><p>完成語：${winWords.map(escapeHtml).join(' / ')}</p><p>この部屋の勝利数：${S.result.wins || 0}</p>`;
     }
 
     function showModal(html) {
@@ -703,28 +619,19 @@
       $('modal').classList.remove('hidden');
     }
 
-    function rerenderSelf() {
-      if (!S) return;
-      renderState({
-        pub: {
-          players: S.players,
-          discards: S.discards,
-          melds: S.melds,
-          current: S.current,
-          drawn: S.drawn,
-          started: S.started,
-          books: S.books,
-          wins: S.wins,
-          round: S.round,
-          lastAction: S.lastAction,
-          pending: S.pending,
-          result: S.result,
-          hostId: S.hostId,
-          wallCount: S.wall?.length ?? 0
-        },
-        hand: S.hands?.[myId] || [],
-        me: myId
-      });
+    function renderSeat(player) {
+      if (!player) return '<div class="small">空席</div>';
+      return `<b>${escapeHtml(player.name)}</b>${player.isHost ? ' <span class="small">HOST</span>' : ''}${player.connected === false ? ' <span class="warn">切断中</span>' : ''}<br><span class="small">勝利 ${S.wins[player.id] || 0}</span>`;
+    }
+
+    function relativeSeats() {
+      const players = S.players || [];
+      const myIndex = Math.max(0, players.findIndex(p => p.id === myId));
+      const rotate = offset => players[(myIndex + offset) % players.length];
+      if (players.length === 1) return { top: null, left: null, right: null, bottom: rotate(0) };
+      if (players.length === 2) return { top: rotate(1), left: null, right: null, bottom: rotate(0) };
+      if (players.length === 3) return { top: rotate(1), left: rotate(2), right: null, bottom: rotate(0) };
+      return { top: rotate(2), left: rotate(1), right: rotate(3), bottom: rotate(0) };
     }
 
     function renderHost() {
@@ -736,53 +643,45 @@
       S = { ...S, ...msg.pub };
       S.hands = S.hands || {};
       S.hands[myId] = msg.hand || S.hands[myId] || [];
-
       $('lobby').classList.add('hidden');
       $('game').classList.remove('hidden');
       $('codeView').textContent = roomCode;
-      $('turnView').textContent = roomClosed
-        ? '対局終了'
-        : S.started
-          ? `手番：${playerName(currentPlayer())} / 山 ${S.wallCount}枚`
-          : `対局待機中 / 山 ${S.wallCount ?? 0}枚`;
+      $('turnView').textContent = roomClosed ? '対局終了' : (S.started ? `手番：${playerName(currentPlayer())}` : '局終了');
+      $('wallCount').textContent = S.wallCount ?? 0;
+      $('lastAction').textContent = S.lastAction || '';
 
-      $('players').innerHTML = S.players.map(p => `
-        <div class="player ${p.id === myId ? 'me ' : ''}${p.id === currentPlayer() && S.started ? 'active ' : ''}${S.pending?.ron?.includes(p.id) ? 'ronable' : ''}">
-          <b>${escapeHtml(p.name)}</b>
-          ${p.isHost ? '<span class="host-badge">HOST</span>' : ''}
-          ${p.id === myId ? '（あなた）' : ''}
-          ${p.connected === false ? '<span class="warn"> 切断中</span>' : ''}
-          <br>
-          <span class="small">${p.id === currentPlayer() && S.started ? '● 手番' : ''}　勝利 ${S.wins[p.id] || 0}</span>
-        </div>
-      `).join('');
+      const seats = relativeSeats();
+      const seatMap = [
+        ['seatTop', seats.top],
+        ['seatLeft', seats.left],
+        ['seatRight', seats.right],
+        ['seatBottom', seats.bottom]
+      ];
+      seatMap.forEach(([id, player]) => {
+        const el = $(id);
+        el.innerHTML = renderSeat(player);
+        el.className = id.includes('Top') ? 'seat seatTop' : id.includes('Left') ? 'seat seatLeft' : id.includes('Right') ? 'seat seatRight' : 'seat seatBottom';
+        if (player?.id === myId) el.classList.add('me');
+        if (player?.id === currentPlayer() && S.started) el.classList.add('active');
+        if (player && S.pending?.ron?.includes(player.id)) el.classList.add('warn');
+      });
 
-      $('river').innerHTML = S.discards.map((d, i) =>
-        `<div class="tile discard" title="${escapeHtml(playerName(d.p))}">${escapeHtml(d.tile)}<span class="idx">${i + 1}</span></div>`
-      ).join('');
+      $('river').innerHTML = S.discards.map((d, i) => `<div class="tile discard" title="${escapeHtml(playerName(d.p))}">${escapeHtml(d.tile)}<span class="idx">${i + 1}</span></div>`).join('');
 
       const hand = S.hands[myId] || [];
-      $('previewNow').innerHTML = previewPanelHtml(hand);
-      $('hand').innerHTML = hand.map((x, i) => `
-        <div class="tile ${selected === i ? 'selected' : ''}"
-             draggable="true"
-             data-i="${i}"
-             onclick="tileClick(${i})"
-             ondragstart="dragStart(event, ${i})"
-             ondragover="event.preventDefault()"
-             ondrop="dropTile(event, ${i})">
-          ${escapeHtml(x)}<span class="idx">${i + 1}</span>
-        </div>
-      `).join('');
-
-      $('handInfo').textContent = `${hand.length}枚　※牌をクリックすると濁音・半濁音・小文字を順番に切替`;
+      const cover = bestWordCover(hand);
+      const assignment = assignWordClasses(hand, cover.words);
+      $('hand').innerHTML = hand.map((x, i) => `<div class="tile ${assignment.classes[i]} ${selected === i ? 'selected' : ''}" draggable="true" data-i="${i}" onclick="tileClick(${i})" ondragstart="dragStart(event, ${i})" ondragover="event.preventDefault()" ondrop="dropTile(event, ${i})">${escapeHtml(x)}<span class="idx">${i + 1}</span></div>`).join('');
+      $('handInfo').textContent = `${hand.length}枚　※同じ牌をもう一度クリックすると濁音・半濁音・小文字に変換`;
+      $('wordLegend').innerHTML = assignment.legend.map((item, i) => `<span class="legendItem legend${item.idx}">${escapeHtml(item.word)}</span>`).join('');
 
       const actions = $('actions');
       actions.innerHTML = '';
       const myTurn = currentPlayer() === myId;
+      const canTsumo = !!canCompleteHand(hand);
       if (S.started && myTurn && S.drawn) {
         button('選択牌を捨てる', 'discard', selected == null);
-        button('ツモ！', 'tsumo', !canWin(hand, myId));
+        button('ツモ！', 'tsumo', !canTsumo);
       }
       if (S.pending?.ron?.includes(myId)) {
         button('ロン！', 'ron', false);
@@ -791,13 +690,13 @@
 
       $('hint').innerHTML = roomClosed
         ? `<span class="warn">${escapeHtml(HOST_LEFT_MESSAGE)}</span>`
-        : S.started && myTurn && S.drawn
-          ? '自動ツモ済み。捨てる牌を選択。選択中の牌を切ったあとの待ち牌も上に表示します。'
-          : S.pending?.ron?.includes(myId)
-            ? '<span class="warn pulse">ロンできます。見送ると次の手番へ進みます。</span>'
+        : S.pending?.ron?.includes(myId)
+          ? '<span class="warn">ロンできます。見送ると次の手番へ進みます。</span>'
+          : S.started && myTurn && S.drawn
+            ? '牌を選んで打牌してください。完成している語だけ色が付きます。'
             : S.started
-              ? '自分の手番以外は手牌を自由に並べ替えできます。'
-              : '対局結果を確認して再戦できます。';
+              ? '相手の打牌待ちです。'
+              : '局が終わりました。再戦できます。';
 
       $('scores').innerHTML = S.players.map(p => `${escapeHtml(p.name)}：${S.wins[p.id] || 0}勝`).join('<br>');
       $('book').innerHTML = (S.books[myId] || []).map(w => `<span class="word">${escapeHtml(w)}</span>`).join('') || '<span class="small">まだ登録なし</span>';
@@ -816,8 +715,7 @@
       const b = document.createElement('button');
       b.textContent = label;
       b.disabled = disabled || roomClosed;
-      if (type === 'ron') b.classList.add('danger', 'pulse');
-      if (type === 'tsumo' && !disabled) b.classList.add('primary');
+      if (type === 'tsumo' || type === 'ron') b.classList.add('primary');
       b.onclick = () => {
         if (type === 'discard') {
           if (selected == null) return;
@@ -838,7 +736,7 @@
         return;
       }
       selected = i;
-      rerenderSelf();
+      renderHost();
     }
 
     function dragStart(e, i) {
@@ -858,8 +756,7 @@
     function applyAction(id, action) {
       if (!S || !S.started || !action) return;
       let ok = false;
-      if (action.type === 'draw') ok = drawFor(id);
-      else if (action.type === 'transform') {
+      if (action.type === 'transform') {
         const hand = S.hands[id] || [];
         if (Number.isInteger(action.index) && action.index >= 0 && action.index < hand.length && CYCLE[hand[action.index]]) {
           hand[action.index] = CYCLE[hand[action.index]];
@@ -872,11 +769,31 @@
           [hand[action.from], hand[action.to]] = [hand[action.to], hand[action.from]];
           ok = true;
         }
-      } else if (action.type === 'discard') ok = discardFor(id, action.index);
-      else if (action.type === 'ron') {
-        if (S.pending?.ron.includes(id)) { finishWin(id, 'ロン', S.pending.discardBy); ok = true; }
+      } else if (action.type === 'discard') {
+        ok = discardFor(id, action.index);
       } else if (action.type === 'tsumo') {
-        if (currentPlayer() === id && S.drawn && canWin(S.hands[id], id)) { finishWin(id, 'ツモ', id); ok = true; }
+        const result = canCompleteHand(S.hands[id] || []);
+        if (currentPlayer() === id && S.drawn && result) {
+          S.books[id] = [...new Set([...(S.books[id] || []), ...result.words])];
+          S.wins[id] = (S.wins[id] || 0) + 1;
+          S.lastAction = `${playerName(id)}がツモ！`;
+          S.started = false;
+          S.pending = null;
+          S.result = { type: 'win', winner: id, kind: 'ツモ', words: result.words, wins: S.wins[id], sig: uid() };
+          ok = true;
+        }
+      } else if (action.type === 'ron') {
+        const base = [...(S.hands[id] || []), S.pending?.tile].filter(Boolean);
+        const result = canCompleteHand(base);
+        if (S.pending?.ron?.includes(id) && result) {
+          S.books[id] = [...new Set([...(S.books[id] || []), ...result.words])];
+          S.wins[id] = (S.wins[id] || 0) + 1;
+          S.lastAction = `${playerName(id)}がロン！`;
+          S.started = false;
+          S.pending = null;
+          S.result = { type: 'win', winner: id, kind: 'ロン', words: result.words, wins: S.wins[id], sig: uid() };
+          ok = true;
+        }
       } else if (action.type === 'pass') {
         if (S.pending?.ron?.includes(id) && !S.pending.passed.includes(id)) {
           S.pending.passed.push(id);
@@ -916,7 +833,6 @@
         return;
       }
       if (m.type === 'action') applyAction(c.peer, m.action);
-      if (m.type === 'chat') log(m.text || '');
     }
 
     function send(action) {
@@ -933,7 +849,7 @@
         S.pending = null;
         S.lastAction = HOST_LEFT_MESSAGE;
         S.result = { type: 'notice', reason: HOST_LEFT_MESSAGE, sig: uid() };
-        rerenderSelf();
+        renderHost();
       }
       showModal(`<div class="winner">対局終了</div><p>${escapeHtml(HOST_LEFT_MESSAGE)}</p>`);
     }
@@ -961,7 +877,7 @@
       initPeer(hostPeerId(roomCode), () => {
         S = emptyState();
         S.hostId = myId;
-        S.players = [{ id: myId, name: name(), connected: true, isHost: true, token: playerToken }];
+        S.players = [{ id: myId, name: playerNameInput(), connected: true, isHost: true, token: playerToken }];
         S.hands[myId] = [];
         S.books[myId] = [];
         S.wins[myId] = 0;
@@ -982,7 +898,7 @@
       $('lobbyStatus').textContent = '参加中…';
       initPeer('guest-' + uid(), () => {
         conn = peer.connect(hostPeerId(roomCode), { reliable: true });
-        conn.on('open', () => conn.send({ type: 'join', name: name(), token: playerToken }));
+        conn.on('open', () => conn.send({ type: 'join', name: playerNameInput(), token: playerToken }));
         conn.on('data', m => {
           if (m.type === 'joined') {
             myId = m.id;
@@ -1007,14 +923,12 @@
       S.current = 0;
       S.drawn = false;
       S.discards = [];
-      S.melds = {};
       S.pending = null;
       S.result = null;
       lastShownResultSig = '';
       S.players.forEach(p => {
         p.connected = true;
         S.hands[p.id] = S.wall.splice(0, 13);
-        S.melds[p.id] = [];
         if (!S.books[p.id]) S.books[p.id] = [];
         if (S.wins[p.id] == null) S.wins[p.id] = 0;
       });
