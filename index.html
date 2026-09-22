@@ -17,60 +17,114 @@
       --tile-side: #e5d8b0;
       --tile-text: #1a252f;
     }
-    * { box-sizing: border-box; font-family: sans-serif; }
+    * { box-sizing: border-box; font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; }
     body { margin: 0; min-height: 100vh; background: #050a07; color: #fff; display: flex; flex-direction: column; align-items: center; }
-    button { cursor: pointer; border: none; background: #27ae60; color: #fff; border-radius: 6px; padding: 10px 18px; font-weight: bold; }
+    button { cursor: pointer; border: none; background: #27ae60; color: #fff; border-radius: 6px; padding: 8px 16px; font-weight: bold; box-shadow: 0 3px 0 #1e8449; }
     button:hover { filter: brightness(1.1); }
-    button.primary { background: #e67e22; }
-    button.danger { background: #c0392b; }
-    .wrap { width: 100%; max-width: 1000px; padding: 12px; }
+    button:active { transform: translateY(2px); box-shadow: 0 1px 0 #1e8449; }
+    button.primary { background: #e67e22; box-shadow: 0 3px 0 #a04000; }
+    button.danger { background: #c0392b; box-shadow: 0 3px 0 #802015; }
+    .wrap { width: 100%; max-width: 1100px; padding: 10px; }
     .card { background: #0f1712; border: 2px solid #27ae60; border-radius: 12px; padding: 20px; text-align: center; }
     .hidden { display: none !important; }
 
-    /* 卓のデザイン */
+    /* 本格雀卓レイアウト */
     .table-container { background: var(--frame-wood); padding: 12px; border-radius: 16px; border: 4px solid #5c330a; margin-top: 10px; }
-    .table-felt { background: radial-gradient(circle, var(--felt-center), var(--felt-outer)); border-radius: 10px; padding: 15px; min-height: 400px; }
-    .river-area { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; min-height: 120px; margin: 15px 0; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; }
+    .table-felt {
+      background: radial-gradient(circle, var(--felt-center), var(--felt-outer));
+      border: 2px solid #205436;
+      border-radius: 10px;
+      padding: 15px;
+      display: grid;
+      grid-template-columns: 140px 1fr 140px;
+      grid-template-rows: 60px 1fr 60px;
+      gap: 10px;
+      min-height: 480px;
+    }
 
-    /* 牌のデザイン */
-    .tile { width: 40px; height: 54px; background: linear-gradient(180deg, var(--tile-face) 80%, var(--tile-side)); color: var(--tile-text); border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #887a50; margin: 3px; user-select: none; }
+    .seat { background: rgba(0,0,0,0.4); border: 1px solid #2e7d32; border-radius: 8px; padding: 8px; text-align: center; font-size: 12px; }
+    .seat.active { border-color: var(--gold); box-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
+    .seat-top { grid-column: 2; grid-row: 1; justify-self: center; width: 200px; }
+    .seat-left { grid-column: 1; grid-row: 2; align-self: center; }
+    .seat-right { grid-column: 3; grid-row: 2; align-self: center; }
+    .seat-bottom { grid-column: 2; grid-row: 3; justify-self: center; width: 200px; }
+
+    .center-board {
+      grid-column: 2; grid-row: 2;
+      background: rgba(5, 15, 10, 0.7);
+      border: 2px solid #1e4620;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .river-area { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; align-content: start; min-height: 140px; }
+
+    /* 麻雀牌 & ドラッグ対応 */
+    .tile {
+      width: 42px; height: 56px;
+      background: linear-gradient(180deg, var(--tile-face) 80%, var(--tile-side));
+      color: var(--tile-text);
+      border-radius: 5px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: bold;
+      cursor: grab;
+      box-shadow: 0 4px 0 #887a50;
+      user-select: none;
+      transition: transform 0.1s;
+    }
+    .tile:active { cursor: grabbing; }
     .tile.selected { transform: translateY(-8px); outline: 2px solid var(--gold); }
+    .tile.dragging { opacity: 0.4; }
     .tile-river { width: 32px; height: 44px; font-size: 18px; box-shadow: 0 2px 0 #776a40; cursor: default; }
 
-    .hand-container { margin-top: 15px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: 1px solid #27ae60; }
-    .complete-hint { background: rgba(241, 196, 15, 0.2); border: 1px solid var(--gold); color: var(--gold); padding: 6px; border-radius: 6px; margin-top: 10px; font-size: 13px; font-weight: bold; }
+    .hand-container { margin-top: 10px; background: rgba(0,0,0,0.6); padding: 12px; border-radius: 10px; border: 1px solid #27ae60; }
+    .hand-tiles { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin: 10px 0; min-height: 60px; }
+    .complete-hint { background: rgba(241, 196, 15, 0.2); border: 1px solid var(--gold); color: var(--gold); padding: 6px; border-radius: 6px; font-size: 13px; text-align: center; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <!-- ロビー画面 -->
-    <section id="lobby" class="card" style="max-width:400px; margin: 50px auto;">
-      <h1 style="color:var(--gold);">🀄 ひらジャン</h1>
-      <input id="name" maxlength="10" placeholder="名前" style="padding:8px; width:80%; text-align:center; margin-bottom:10px;"><br>
-      <button class="primary" id="create" style="width:80%; margin-bottom:10px;">部屋を作る</button>
-      <div id="roomWait" class="hidden"></div>
+    <section id="lobby" class="card" style="max-width:450px; margin: 40px auto;">
+      <h1 style="color:var(--gold); margin:0 0 10px 0;">🀄 ひらジャン</h1>
+      <input id="name" maxlength="10" placeholder="あなたの名前" style="padding:8px; width:80%; text-align:center; margin-bottom:12px;"><br>
+      <button class="primary" id="create" style="width:80%; margin-bottom:10px;">部屋を作る (ホスト)</button>
+      <div id="roomWait" class="hidden" style="margin-top:15px; border-top:1px solid #333; padding-top:15px;"></div>
     </section>
 
-    <!-- メイン対局画面 -->
+    <!-- 対局画面 -->
     <section id="game" class="hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#0f1712; padding:8px 12px; border-radius:6px; border:1px solid #2e7d32;">
         <div><b>部屋:</b> <span id="codeView" style="color:var(--gold);"></span></div>
         <div id="turnView" style="color:var(--gold); font-weight:bold;"></div>
-        <button id="leave" class="danger" style="padding:4px 8px;">退出</button>
+        <button id="leave" class="danger" style="padding:4px 8px; font-size:12px;">退出</button>
       </div>
 
       <div class="table-container">
         <div class="table-felt">
-          <div style="text-align:center; color:var(--gold);">山札: <span id="wallCount">0</span>枚</div>
-          <div class="river-area" id="river"></div>
+          <div id="seatTop" class="seat seat-top"></div>
+          <div id="seatLeft" class="seat seat-left"></div>
+          <div class="center-board">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--gold);">
+              <span>山札: <span id="wallCount">0</span>枚</span>
+              <span id="lastAction"></span>
+            </div>
+            <div class="river-area" id="river"></div>
+          </div>
+          <div id="seatRight" class="seat seat-right"></div>
+          <div id="seatBottom" class="seat seat-bottom"></div>
         </div>
       </div>
 
       <div class="hand-container">
-        <div style="font-size:13px; color:var(--gold);">あなたの手牌（2回クリックで濁音に変化）</div>
-        <div id="hand"></div>
+        <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--gold);">
+          <span>あなたの手牌（ドラッグで移動 / 2回クリックで濁音化）</span>
+        </div>
+        <div id="hand" class="hand-tiles"></div>
         <div id="completeHint" class="complete-hint hidden"></div>
-        <div id="actions" style="margin-top:10px;"></div>
+        <div id="actions" style="display:flex; gap:10px; justify-content:center; margin-top:10px;"></div>
       </div>
     </section>
   </div>
@@ -90,9 +144,8 @@
     const CYCLE = {};
     Object.entries(TRANS).forEach(([b, arr]) => arr.forEach((x, i) => CYCLE[x] = arr[(i + 1) % arr.length]));
 
-    let myId = 'host', S = null, selected = null;
-
-    function $(id) { return document.getElementById(id); }
+    let S = null, selected = null, dragIndex = null;
+    const $ = id => document.getElementById(id);
 
     function makeWall() {
       const wall = [];
@@ -105,18 +158,89 @@
       return WORDS.filter(w => str.includes(w));
     }
 
+    function addBot() {
+      if (!S || S.players.length >= 4) return;
+      const botNum = S.players.filter(p => p.isBot).length + 1;
+      S.players.push({ id: 'bot_' + botNum, name: 'CPU ' + botNum, isBot: true });
+      updateLobbyWait();
+    }
+
+    function updateLobbyWait() {
+      $('roomWait').innerHTML = `
+        <p>参加メンバー (${S.players.length}/4人):<br><b>${S.players.map(p => p.name).join(', ')}</b></p>
+        <button onclick="addBot()" ${S.players.length >= 4 ? 'disabled' : ''}>+ Bot(CP)を追加</button>
+        <button class="primary" onclick="startGame()">対局開始</button>
+      `;
+    }
+
+    $('create').onclick = () => {
+      S = { players: [{ id: 'me', name: $('name').value || 'あなた', isBot: false }], started: false };
+      $('roomWait').classList.remove('hidden');
+      updateLobbyWait();
+    };
+
+    function startGame() {
+      S.started = true;
+      S.wall = makeWall();
+      S.current = 0;
+      S.discards = [];
+      S.hands = {};
+      S.players.forEach(p => {
+        S.hands[p.id] = S.wall.splice(0, 13);
+      });
+      // 最初の親のツモ
+      S.hands[S.players[0].id].push(S.wall.pop());
+      S.drawn = true;
+      render();
+
+      if (S.players[S.current].isBot) processBotTurn();
+    }
+
     function render() {
-      if (!S || !S.started) return;
       $('lobby').classList.add('hidden');$('game').classList.remove('hidden');
 
       $('wallCount').textContent = S.wall.length;
-      $('turnView').textContent = 'あなたの手番';
-      $('river').innerHTML = S.discards.map(d => `<div class="tile tile-river">${d}</div>`).join('');
+      const curP = S.players[S.current];
+      $('turnView').textContent = `手番: ${curP.name}`;
 
-      const hand = S.hand;
-      $('hand').innerHTML = hand.map((x, i) => `<div class="tile ${selected === i ? 'selected' : ''}" onclick="selectTile(${i})">${x}</div>`).join('');
+      // 席の配置
+      const p = S.players;
+      $('seatBottom').innerHTML = `<b>${p[0]?.name||''}</b>` + (S.current === 0 ? ' (手番)' : '');
+      $('seatTop').innerHTML = p[1] ? `<b>${p[1].name}</b>` + (S.current === 1 ? ' (手番)' : '') : '空席';
+      $('seatLeft').innerHTML = p[2] ? `<b>${p[2].name}</b>` + (S.current === 2 ? ' (手番)' : '') : '空席';
+      $('seatRight').innerHTML = p[3] ? `<b>${p[3].name}</b>` + (S.current === 3 ? ' (手番)' : '') : '空席';
 
-      const completed = checkWords(hand);
+      // 河
+      $('river').innerHTML = S.discards.map(d => `<div class="tile tile-river">${d.tile}</div>`).join('');
+
+      // 自分の手牌
+      const myHand = S.hands['me'] || [];
+      const handEl = $('hand');
+      handEl.innerHTML = '';
+      myHand.forEach((x, i) => {
+        const tile = document.createElement('div');
+        tile.className = `tile ${selected === i ? 'selected' : ''}`;
+        tile.textContent = x;
+        tile.draggable = true;
+
+        // ドラッグ＆ドロップ処理
+        tile.ondragstart = (e) => { dragIndex = i; tile.classList.add('dragging'); };
+        tile.ondragover = (e) => e.preventDefault();
+        tile.ondrop = (e) => {
+          e.preventDefault();
+          if (dragIndex !== null && dragIndex !== i) {
+            const item = myHand.splice(dragIndex, 1)[0];
+            myHand.splice(i, 0, item);
+            selected = null;
+            render();
+          }
+        };
+        tile.onclick = () => tileClick(i);
+        handEl.appendChild(tile);
+      });
+
+      // 完成通知
+      const completed = checkWords(myHand);
       const hint = $('completeHint');
       if (completed.length > 0) {
         hint.classList.remove('hidden');
@@ -125,11 +249,12 @@
         hint.classList.add('hidden');
       }
 
+      // ボタン制御
       const actions = $('actions');
       actions.innerHTML = '';
-      if (S.drawn) {
+      if (S.current === 0 && S.drawn) {
         const b1 = document.createElement('button');
-        b1.textContent = '選択した牌を捨てる';
+        b1.textContent = '選択牌を捨てる';
         b1.disabled = selected == null;
         b1.onclick = discardTile;
         actions.appendChild(b1);
@@ -137,17 +262,17 @@
         if (completed.length > 0) {
           const b2 = document.createElement('button');
           b2.className = 'primary';
-          b2.style.marginLeft = '10px';
           b2.textContent = 'ツモあがり！';
-          b2.onclick = () => alert('上がり！完成した言葉: ' + completed.join(', '));
+          b2.onclick = () => alert('上がり！完成語: ' + completed.join(', '));
           actions.appendChild(b2);
         }
       }
     }
 
-    function selectTile(i) {
-      if (selected === i && CYCLE[S.hand[i]]) {
-        S.hand[i] = CYCLE[S.hand[i]];
+    function tileClick(i) {
+      const myHand = S.hands['me'];
+      if (selected === i && CYCLE[myHand[i]]) {
+        myHand[i] = CYCLE[myHand[i]];
       } else {
         selected = i;
       }
@@ -156,35 +281,39 @@
 
     function discardTile() {
       if (selected == null) return;
-      const tile = S.hand.splice(selected, 1)[0];
-      S.discards.push(tile);
+      const tile = S.hands['me'].splice(selected, 1)[0];
+      S.discards.push({ p: 'me', tile });
       selected = null;
       S.drawn = false;
-      render();
-
-      // 自動ツモ
-      setTimeout(() => {
-        if (S.wall.length > 0) {
-          S.hand.push(S.wall.pop());
-          S.drawn = true;
-          render();
-        } else {
-          alert('流局（山札がなくなりました）');
-        }
-      }, 500);
+      nextTurn();
     }
 
-    $('create').onclick = () => {
-      S = {
-        started: true,
-        wall: makeWall(),
-        hand: [],
-        discards: [],
-        drawn: true
-      };
-      S.hand = S.wall.splice(0, 14);
+    function nextTurn() {
+      S.current = (S.current + 1) % S.players.length;
+      if (S.wall.length === 0) {
+        alert('流局（山札がなくなりました）');
+        return;
+      }
+      const curP = S.players[S.current];
+      S.hands[curP.id].push(S.wall.pop());
+      S.drawn = true;
       render();
-    };
+
+      if (curP.isBot) {
+        setTimeout(processBotTurn, 800);
+      }
+    }
+
+    // Botの自動思考（1番右の牌をランダムまたは自動で捨てる）
+    function processBotTurn() {
+      const curP = S.players[S.current];
+      const botHand = S.hands[curP.id];
+      const discardIdx = Math.floor(Math.random() * botHand.length);
+      const tile = botHand.splice(discardIdx, 1)[0];
+      S.discards.push({ p: curP.id, tile });
+      S.drawn = false;
+      nextTurn();
+    }
 
     $('leave').onclick = () => location.reload();
   </script>
