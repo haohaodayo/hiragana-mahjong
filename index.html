@@ -13,231 +13,71 @@
       --felt-outer: #0d2a1b;
       --frame-wood: #3a1e05;
       --gold: #f1c40f;
-      --gold-dark: #b7950b;
-      --text-light: #f4f6f7;
-      --text-muted: #abb2b9;
       --tile-face: #fffdf5;
       --tile-side: #e5d8b0;
-      --tile-back: #27ae60;
       --tile-text: #1a252f;
-      --accent-red: #c0392b;
     }
-    * { box-sizing: border-box; font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #050a07;
-      color: var(--text-light);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    button {
-      cursor: pointer;
-      border: none;
-      background: linear-gradient(180deg, #2ecc71, #27ae60);
-      color: #fff;
-      border-radius: 6px;
-      padding: 10px 18px;
-      font-weight: bold;
-      box-shadow: 0 4px 0 #1e8449, 0 5px 10px rgba(0,0,0,0.5);
-      transition: all .1s;
-    }
-    button:hover { transform: translateY(-1px); filter: brightness(1.1); }
-    button:active { transform: translateY(3px); box-shadow: 0 1px 0 #1e8449; }
-    button:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
-    button.primary { background: linear-gradient(180deg, #f39c12, #d35400); box-shadow: 0 4px 0 #a04000; }
-    button.danger { background: linear-gradient(180deg, #e74c3c, #c0392b); box-shadow: 0 4px 0 #922b21; }
-
-    .wrap { width: 100%; max-width: 1200px; padding: 12px; }
-    .card { background: rgba(15, 23, 18, 0.95); border: 2px solid #27ae60; border-radius: 12px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+    * { box-sizing: border-box; font-family: sans-serif; }
+    body { margin: 0; min-height: 100vh; background: #050a07; color: #fff; display: flex; flex-direction: column; align-items: center; }
+    button { cursor: pointer; border: none; background: #27ae60; color: #fff; border-radius: 6px; padding: 10px 18px; font-weight: bold; }
+    button:hover { filter: brightness(1.1); }
+    button.primary { background: #e67e22; }
+    button.danger { background: #c0392b; }
+    .wrap { width: 100%; max-width: 1000px; padding: 12px; }
+    .card { background: #0f1712; border: 2px solid #27ae60; border-radius: 12px; padding: 20px; text-align: center; }
     .hidden { display: none !important; }
 
-    /* 本格雀卓レイアウト */
-    .table-container {
-      background: var(--frame-wood);
-      padding: 16px;
-      border-radius: 20px;
-      box-shadow: inset 0 0 10px #000, 0 15px 35px rgba(0,0,0,0.9);
-      border: 4px solid #5c330a;
-    }
-    .table-felt {
-      background: radial-gradient(circle, var(--felt-center) 0%, var(--felt-outer) 100%);
-      border: 2px solid #205436;
-      border-radius: 12px;
-      padding: 20px;
-      display: grid;
-      grid-template-columns: 160px 1fr 160px;
-      grid-template-rows: auto 1fr auto;
-      gap: 15px;
-      min-height: 520px;
-      position: relative;
-    }
+    /* 卓のデザイン */
+    .table-container { background: var(--frame-wood); padding: 12px; border-radius: 16px; border: 4px solid #5c330a; margin-top: 10px; }
+    .table-felt { background: radial-gradient(circle, var(--felt-center), var(--felt-outer)); border-radius: 10px; padding: 15px; min-height: 400px; }
+    .river-area { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; min-height: 120px; margin: 15px 0; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; }
 
-    /* プレイヤー席 */
-    .seat {
-      background: rgba(0,0,0,0.4);
-      border: 1px solid #2e7d32;
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-      font-size: 13px;
-    }
-    .seat.active { border-color: var(--gold); box-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
-    .seat.me { border: 2px solid var(--gold); }
-    .seat-top { grid-column: 2; grid-row: 1; justify-self: center; width: 220px; }
-    .seat-left { grid-column: 1; grid-row: 2; align-self: center; }
-    .seat-right { grid-column: 3; grid-row: 2; align-self: center; }
-    .seat-bottom { grid-column: 2; grid-row: 3; justify-self: center; width: 220px; }
+    /* 牌のデザイン */
+    .tile { width: 40px; height: 54px; background: linear-gradient(180deg, var(--tile-face) 80%, var(--tile-side)); color: var(--tile-text); border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #887a50; margin: 3px; user-select: none; }
+    .tile.selected { transform: translateY(-8px); outline: 2px solid var(--gold); }
+    .tile-river { width: 32px; height: 44px; font-size: 18px; box-shadow: 0 2px 0 #776a40; cursor: default; }
 
-    /* 卓の中央（河・山） */
-    .center-board {
-      grid-column: 2; grid-row: 2;
-      background: rgba(5, 15, 10, 0.7);
-      border: 2px solid #1e4620;
-      border-radius: 10px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .board-info { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; color: var(--gold); border-bottom: 1px solid #1e4620; padding-bottom: 6px; }
-    .river-area {
-      display: grid;
-      grid-template-columns: repeat(6, 36px);
-      gap: 5px;
-      justify-content: center;
-      align-content: start;
-      min-height: 160px;
-      margin: 10px 0;
-    }
-
-    /* 麻雀牌デザイン */
-    .tile {
-      width: 44px;
-      height: 58px;
-      background: linear-gradient(180deg, var(--tile-face) 85%, var(--tile-side) 100%);
-      color: var(--tile-text);
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-      font-weight: 900;
-      user-select: none;
-      cursor: pointer;
-      box-shadow: 0 5px 0 #a3956b, 0 8px 10px rgba(0,0,0,0.6);
-      position: relative;
-      transition: transform 0.1s;
-    }
-    .tile:hover { transform: translateY(-4px); }
-    .tile.selected { transform: translateY(-12px); box-shadow: 0 12px 0 #a3956b, 0 12px 15px rgba(241, 196, 15, 0.6); outline: 2px solid var(--gold); }
-    .tile-river { width: 36px; height: 48px; font-size: 20px; box-shadow: 0 3px 0 #92845a; cursor: default; }
-    .tile-river:hover { transform: none; }
-
-    /* 手牌エリア */
-    .hand-container {
-      margin-top: 15px;
-      background: rgba(0,0,0,0.6);
-      border-radius: 12px;
-      padding: 15px;
-      border: 1px solid #27ae60;
-    }
-    .hand-tiles { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
-    .complete-hint {
-      background: rgba(241, 196, 15, 0.15);
-      border: 1px solid var(--gold);
-      color: var(--gold);
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: bold;
-      text-align: center;
-      margin-top: 8px;
-    }
-
-    /* モーダル */
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; }
-    .modal-content { background: #0f1712; border: 3px solid var(--gold); border-radius: 16px; padding: 25px; text-align: center; max-width: 500px; width: 90%; }
-    .winner-title { font-size: 32px; color: var(--gold); font-weight: 900; margin-bottom: 10px; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
+    .hand-container { margin-top: 15px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: 1px solid #27ae60; }
+    .complete-hint { background: rgba(241, 196, 15, 0.2); border: 1px solid var(--gold); color: var(--gold); padding: 6px; border-radius: 6px; margin-top: 10px; font-size: 13px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <div id="app" class="wrap">
+  <div class="wrap">
     <!-- ロビー画面 -->
-    <section id="lobby" class="card" style="max-width:500px; margin: 80px auto; text-align:center;">
-      <h1 style="color:var(--gold); margin-bottom:5px;">🀄 ひらジャン</h1>
-      <p style="color:var(--text-muted); font-size:13px; margin-bottom:20px;">本格ひらがな麻雀</p>
-      <div style="display:grid; gap:12px;">
-        <input id="name" maxlength="12" placeholder="プレイヤー名" style="padding:10px; border-radius:6px; border:1px solid #333; text-align:center;">
-        <div style="display:flex; gap:8px;">
-          <button class="primary" id="create" style="flex:1;">部屋を作る</button>
-          <input id="room" maxlength="8" placeholder="部屋コード" style="width:110px; text-align:center;">
-          <button id="join">参加</button>
-        </div>
-        <div id="lobbyStatus" style="font-size:12px; color:var(--gold);"></div>
-        <div id="roomWait" class="hidden"></div>
-      </div>
+    <section id="lobby" class="card" style="max-width:400px; margin: 50px auto;">
+      <h1 style="color:var(--gold);">🀄 ひらジャン</h1>
+      <input id="name" maxlength="10" placeholder="名前" style="padding:8px; width:80%; text-align:center; margin-bottom:10px;"><br>
+      <button class="primary" id="create" style="width:80%; margin-bottom:10px;">部屋を作る</button>
+      <div id="roomWait" class="hidden"></div>
     </section>
 
     <!-- メイン対局画面 -->
     <section id="game" class="hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; background:#0f1712; padding:10px 15px; border-radius:8px; border:1px solid #2e7d32;">
-        <div><b>部屋コード:</b> <span id="codeView" style="color:var(--gold); font-weight:bold;"></span></div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div><b>部屋:</b> <span id="codeView" style="color:var(--gold);"></span></div>
         <div id="turnView" style="color:var(--gold); font-weight:bold;"></div>
-        <div>
-          <button id="newRound" style="padding:5px 10px; font-size:12px;">再戦</button>
-          <button id="leave" class="danger" style="padding:5px 10px; font-size:12px;">退出</button>
-        </div>
+        <button id="leave" class="danger" style="padding:4px 8px;">退出</button>
       </div>
 
       <div class="table-container">
         <div class="table-felt">
-          <div id="seatTop" class="seat seat-top"></div>
-          <div id="seatLeft" class="seat seat-left"></div>
-          
-          <div class="center-board">
-            <div class="board-info">
-              <span>山札: <span id="wallCount">0</span>枚</span>
-              <span id="lastAction" style="font-size:12px; color:#fff;"></span>
-            </div>
-            <div class="river-area" id="river"></div>
-          </div>
-
-          <div id="seatRight" class="seat seat-right"></div>
-          <div id="seatBottom" class="seat seat-bottom"></div>
+          <div style="text-align:center; color:var(--gold);">山札: <span id="wallCount">0</span>枚</div>
+          <div class="river-area" id="river"></div>
         </div>
       </div>
 
-      <!-- 自分の手牌エリア -->
       <div class="hand-container">
-        <div style="display:flex; justify-content:space-between; align-size:center;">
-          <span style="font-size:14px; font-weight:bold; color:var(--gold);">あなたの手牌</span>
-          <span style="font-size:11px; color:var(--text-muted);">※同じ牌を2回連続クリックで「濁音・小文字」に変換</span>
-        </div>
-        <div id="hand" class="hand-tiles"></div>
-        
-        <!-- 2文字・3文字完成時の通知欄 -->
+        <div style="font-size:13px; color:var(--gold);">あなたの手牌（2回クリックで濁音に変化）</div>
+        <div id="hand"></div>
         <div id="completeHint" class="complete-hint hidden"></div>
-
-        <div id="actions" style="display:flex; gap:10px; justify-content:center; margin-top:12px;"></div>
+        <div id="actions" style="margin-top:10px;"></div>
       </div>
     </section>
-
-    <!-- 結果表示モーダル -->
-    <div id="modal" class="modal hidden">
-      <div class="modal-content">
-        <div id="modalBody"></div>
-        <button id="modalClose" style="margin-top:15px;">閉じる</button>
-      </div>
-    </div>
   </div>
 
   <script>
     const BASE = [...'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'];
-    const RAW_WORDS = window.MAHJONG_WORDS || ["あい","あお","あか"];
-    const WORDS = [...new Set(RAW_WORDS.filter(w => (w.length === 2 || w.length === 3)))];
-    const WORD_SET = new Set(WORDS);
+    const WORDS = (window.MAHJONG_WORDS || ["あい","あお"]).filter(w => w.length === 2 || w.length === 3);
 
     const TRANS = {
       'あ':['あ','ぁ'],'い':['い','ぃ'],'う':['う','ぅ','ゔ'],'え':['え','ぇ'],'お':['お','ぉ'],
@@ -248,203 +88,105 @@
       'や':['や','ゃ'],'ゆ':['ゆ','ゅ'],'よ':['よ','ょ'],'わ':['わ','ゎ']
     };
     const CYCLE = {};
-    Object.entries(TRANS).forEach(([base, arr]) => arr.forEach((x, i) => CYCLE[x] = arr[(i + 1) % arr.length]));
+    Object.entries(TRANS).forEach(([b, arr]) => arr.forEach((x, i) => CYCLE[x] = arr[(i + 1) % arr.length]));
 
-    let role = '', peer = null, myId = '', roomCode = '', conn = null, S = null, selected = null;
-    const conns = {};
-    const $ = id => document.getElementById(id);
+    let myId = 'host', S = null, selected = null;
 
-    function shuffle(arr) {
-      arr = [...arr];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
+    function $(id) { return document.getElementById(id); }
 
     function makeWall() {
       const wall = [];
       for (const c of BASE) for (let i = 0; i < 4; i++) wall.push(c);
-      return shuffle(wall);
+      return wall.sort(() => Math.random() - 0.5);
     }
 
-    function emptyState() {
-      return { players: [], hands: {}, discards: [], wall: [], current: 0, drawn: false, started: false, wins: {}, lastAction: '', pending: null, result: null };
-    }
-
-    function initPeer(id, cb) {
-      peer = new Peer(id, { debug: 0 });
-      peer.on('open', openedId => { myId = openedId; cb && cb(); });
-      peer.on('connection', c => { if (role === 'host') setupHostConn(c); });
-    }
-
-    function setupHostConn(c) {
-      c.on('data', m => hostMessage(c, m));
-    }
-
-    function broadcast() {
-      if (role !== 'host') return;
-      for (const p of S.players) {
-        const c = conns[p.id];
-        if (c && c.open) c.send({ type: 'state', pub: S, hand: S.hands[p.id] || [], me: p.id });
-      }
-    }
-
-    function checkCompletedWords(hand) {
-      const found = new Set();
+    function checkWords(hand) {
       const str = hand.join('');
-      for (let w of WORDS) {
-        if (str.includes(w)) found.add(w);
-      }
-      return Array.from(found);
+      return WORDS.filter(w => str.includes(w));
     }
 
-    function renderState(msg) {
-      S = { ...S, ...msg.pub };
-      S.hands[myId] = msg.hand || [];
+    function render() {
+      if (!S || !S.started) return;
+      $('lobby').classList.add('hidden');$('game').classList.remove('hidden');
 
-      $('lobby').classList.add('hidden');
-      $('game').classList.remove('hidden');$('codeView').textContent = roomCode;
-      $('turnView').textContent = S.started ? `手番: ${S.players[S.current]?.name || ''}` : '局終了';
       $('wallCount').textContent = S.wall.length;
-      $('lastAction').textContent = S.lastAction || '';
+      $('turnView').textContent = 'あなたの手番';
+      $('river').innerHTML = S.discards.map(d => `<div class="tile tile-river">${d}</div>`).join('');
 
-      // 席の描画
-      const pCount = S.players.length;
-      $('seatBottom').innerHTML = `<b>${S.players[0]?.name || ''}</b><br>勝利: ${S.wins[S.players[0]?.id]||0}`;
-      $('seatTop').innerHTML = pCount > 1 ? `<b>${S.players[1]?.name || ''}</b><br>勝利: ${S.wins[S.players[1]?.id]||0}` : '空席';
-      $('seatLeft').innerHTML = pCount > 2 ? `<b>${S.players[2]?.name || ''}</b><br>勝利: ${S.wins[S.players[2]?.id]||0}` : '空席';
-      $('seatRight').innerHTML = pCount > 3 ? `<b>${S.players[3]?.name || ''}</b><br>勝利: ${S.wins[S.players[3]?.id]||0}` : '空席';
+      const hand = S.hand;
+      $('hand').innerHTML = hand.map((x, i) => `<div class="tile ${selected === i ? 'selected' : ''}" onclick="selectTile(${i})">${x}</div>`).join('');
 
-      // 河（捨て牌）の描画
-      $('river').innerHTML = S.discards.map(d => `<div class="tile tile-river">${d.tile}</div>`).join('');
-
-      // 手牌の描画（色付けなし）
-      const hand = S.hands[myId] || [];
-      $('hand').innerHTML = hand.map((x, i) => `<div class="tile ${selected === i ? 'selected' : ''}" onclick="tileClick(${i})">${x}</div>`).join('');
-
-      // 完成単語のチェック・通知表示
-      const completed = checkCompletedWords(hand);
-      const hintEl = $('completeHint');
+      const completed = checkWords(hand);
+      const hint = $('completeHint');
       if (completed.length > 0) {
-        hintEl.classList.remove('hidden');
-        hintEl.innerHTML = `💡 完成中の言葉： <b>${completed.join('、')}</b>`;
+        hint.classList.remove('hidden');
+        hint.innerHTML = `💡 完成中の言葉: <b>${completed.slice(0, 5).join('、')}</b>`;
       } else {
-        hintEl.classList.add('hidden');
+        hint.classList.add('hidden');
       }
 
-      // アクションボタン
       const actions = $('actions');
       actions.innerHTML = '';
-      const isMyTurn = S.players[S.current]?.id === myId;
-      if (S.started && isMyTurn && S.drawn) {
+      if (S.drawn) {
         const b1 = document.createElement('button');
-        b1.textContent = '選択牌を捨てる';
+        b1.textContent = '選択した牌を捨てる';
         b1.disabled = selected == null;
-        b1.onclick = () => { send({ type: 'discard', index: selected }); selected = null; };
+        b1.onclick = discardTile;
         actions.appendChild(b1);
 
         if (completed.length > 0) {
           const b2 = document.createElement('button');
           b2.className = 'primary';
-          b2.textContent = 'アガリ（ツモ）！';
-          b2.onclick = () => send({ type: 'tsumo', words: completed });
+          b2.style.marginLeft = '10px';
+          b2.textContent = 'ツモあがり！';
+          b2.onclick = () => alert('上がり！完成した言葉: ' + completed.join(', '));
           actions.appendChild(b2);
         }
       }
-
-      if (S.result) {
-        $('modalBody').innerHTML = `<div class="winner-title">${S.result.winnerName} の勝ち！</div><p>完成単語: ${S.result.words.join(', ')}</p>`;
-        $('modal').classList.remove('hidden');
-      }
     }
 
-    function tileClick(i) {
-      const hand = S.hands[myId] || [];
-      if (selected === i && CYCLE[hand[i]]) {
-        send({ type: 'transform', index: i });
-        return;
+    function selectTile(i) {
+      if (selected === i && CYCLE[S.hand[i]]) {
+        S.hand[i] = CYCLE[S.hand[i]];
+      } else {
+        selected = i;
       }
-      selected = i;
-      renderState({ pub: S, hand: S.hands[myId] });
+      render();
     }
 
-    function hostMessage(c, m) {
-      if (m.type === 'join') {
-        const p = { id: c.peer, name: m.name || 'ゲスト' };
-        S.players.push(p);
-        S.hands[p.id] = [];
-        S.wins[p.id] = 0;
-        conns[p.id] = c;
-        c.send({ type: 'joined', id: p.id });
-        broadcast();
-        $('roomWait').innerHTML = `参加者: ${S.players.length}人 <button onclick="startGame()" class="primary">対局開始</button>`;
-      } else if (m.type === 'action') {
-        applyAction(c.peer, m.action);
-      }
-    }
+    function discardTile() {
+      if (selected == null) return;
+      const tile = S.hand.splice(selected, 1)[0];
+      S.discards.push(tile);
+      selected = null;
+      S.drawn = false;
+      render();
 
-    function applyAction(id, act) {
-      const hand = S.hands[id] || [];
-      if (act.type === 'transform') {
-        hand[act.index] = CYCLE[hand[act.index]];
-      } else if (act.type === 'discard') {
-        const tile = hand.splice(act.index, 1)[0];
-        S.discards.push({ p: id, tile });
-        S.drawn = false;
-        S.current = (S.current + 1) % S.players.length;
-        // 次のツモ
-        const nextId = S.players[S.current].id;
-        S.hands[nextId].push(S.wall.pop());
-        S.drawn = true;
-      } else if (act.type === 'tsumo') {
-        S.started = false;
-        S.wins[id] = (S.wins[id] || 0) + 1;
-        S.result = { winnerName: S.players.find(p => p.id === id).name, words: act.words };
-      }
-      broadcast();
-    }
-
-    function send(act) {
-      if (role === 'host') applyAction(myId, act);
-      else if (conn?.open) conn.send({ type: 'action', action: act });
+      // 自動ツモ
+      setTimeout(() => {
+        if (S.wall.length > 0) {
+          S.hand.push(S.wall.pop());
+          S.drawn = true;
+          render();
+        } else {
+          alert('流局（山札がなくなりました）');
+        }
+      }, 500);
     }
 
     $('create').onclick = () => {
-      roomCode = Math.random().toString(36).slice(2, 7).toUpperCase();
-      role = 'host';
-      initPeer('hiragana-mahjong-v5-' + roomCode.toLowerCase(), () => {
-        S = emptyState();
-        S.players = [{ id: myId, name: $('name').value || 'ホスト' }];
-        S.wins[myId] = 0;
-        $('roomWait').classList.remove('hidden');$('roomWait').innerHTML = `部屋コード: <b>${roomCode}</b><br><button class="primary" onclick="startGame()">対局開始</button>`;
-      });
+      S = {
+        started: true,
+        wall: makeWall(),
+        hand: [],
+        discards: [],
+        drawn: true
+      };
+      S.hand = S.wall.splice(0, 14);
+      render();
     };
 
-    $('join').onclick = () => {
-      roomCode = ($('room').value || '').toUpperCase();
-      role = 'guest';
-      initPeer('guest-' + Math.random().toString(36).slice(2,7), () => {
-        conn = peer.connect('hiragana-mahjong-v5-' + roomCode.toLowerCase());
-        conn.on('open', () => conn.send({ type: 'join', name: $('name').value || 'ゲスト' }));
-        conn.on('data', m => { if (m.type === 'state') renderState(m); });
-      });
-    };
-
-    function startGame() {
-      S.started = true;
-      S.wall = makeWall();
-      S.current = 0;
-      S.discards = [];
-      S.result = null;
-      S.players.forEach(p => { S.hands[p.id] = S.wall.splice(0, 13); });
-      S.hands[S.players[0].id].push(S.wall.pop());
-      S.drawn = true;
-      broadcast();
-    }
-
-    $('modalClose').onclick = () => $('modal').classList.add('hidden');$('leave').onclick = () => location.reload();
+    $('leave').onclick = () => location.reload();
   </script>
 </body>
 </html>
