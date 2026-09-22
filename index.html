@@ -4,102 +4,628 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ひらがな麻雀</title>
+
 <style>
-*{box-sizing:border-box}
+*{
+  box-sizing:border-box;
+}
+
 body{
-  margin:0;background:#07110b;color:#f7f3df;
-  font-family:system-ui,"Yu Gothic",Meiryo,sans-serif
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at center,#183c29 0%,#0a1b12 48%,#050b08 100%);
+  color:#f7f3df;
+  font-family:
+    "Yu Gothic",
+    "Hiragino Kaku Gothic ProN",
+    Meiryo,
+    sans-serif;
 }
-button{
-  border:1px solid #806d37;background:#243b2b;color:#fff;
-  padding:9px 14px;border-radius:9px;cursor:pointer
-}
-button:hover{filter:brightness(1.2)}
-button:disabled{opacity:.35;cursor:not-allowed}
-.primary{background:#876b20}
+
+/* =========================
+   ヘッダー
+========================= */
+
 header{
-  padding:18px 24px;border-bottom:1px solid #304735;
-  display:flex;justify-content:space-between;align-items:center
+  height:70px;
+  padding:0 28px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:rgba(4,10,7,.85);
+  border-bottom:1px solid #526348;
+  box-shadow:0 4px 20px #0008;
 }
-h1{margin:0;color:#e7ca70}
-#setup,#game{max-width:1200px;margin:20px auto;padding:20px}
-.panel{
-  background:#102017;border:1px solid #36513e;
-  border-radius:16px;padding:18px
+
+.logo{
+  font-size:26px;
+  font-weight:900;
+  color:#e7cb72;
+  letter-spacing:2px;
 }
-.setup{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:12px
+
+.headerRight{
+  display:flex;
+  gap:10px;
+  align-items:center;
 }
-label{display:block;color:#aeb9ad;font-size:13px;margin-bottom:5px}
+
+.headerBadge{
+  padding:7px 13px;
+  border:1px solid #776633;
+  border-radius:20px;
+  color:#d8c78a;
+  background:#16180f;
+  font-size:13px;
+}
+
+/* =========================
+   セットアップ
+========================= */
+
+#setup{
+  width:min(900px,92%);
+  margin:60px auto;
+  padding:38px;
+  background:rgba(11,26,17,.95);
+  border:1px solid #586744;
+  border-radius:24px;
+  box-shadow:0 20px 60px #0008;
+}
+
+.setupTitle{
+  text-align:center;
+  margin-bottom:30px;
+}
+
+.setupTitle h1{
+  margin:0;
+  color:#ead27b;
+  font-size:42px;
+}
+
+.setupTitle p{
+  color:#9eaa9f;
+}
+
+.setupGrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+}
+
+.field label{
+  display:block;
+  color:#aeb8a9;
+  font-size:13px;
+  margin-bottom:6px;
+}
+
 input,select{
-  width:100%;padding:10px;background:#07110b;
-  border:1px solid #3c5945;color:white;border-radius:8px
+  width:100%;
+  padding:13px;
+  border-radius:10px;
+  border:1px solid #43573e;
+  background:#07120c;
+  color:#fff;
+  font-size:15px;
 }
-.layout{display:grid;grid-template-columns:1fr 300px;gap:15px}
-@media(max-width:850px){.layout{grid-template-columns:1fr}}
+
+.startButton{
+  display:block;
+  margin:30px auto 0;
+  padding:15px 55px;
+  font-size:18px;
+  font-weight:bold;
+  border-radius:13px;
+  border:1px solid #b08d3c;
+  background:linear-gradient(#987c2b,#63501b);
+  color:#fff8d8;
+  cursor:pointer;
+}
+
+/* =========================
+   ゲーム全体
+========================= */
+
+#game{
+  display:none;
+  width:min(1450px,96%);
+  margin:20px auto;
+}
+
+.gameLayout{
+  display:grid;
+  grid-template-columns:220px 1fr 280px;
+  gap:15px;
+}
+
+@media(max-width:1100px){
+  .gameLayout{
+    grid-template-columns:1fr;
+  }
+}
+
+/* =========================
+   サイド
+========================= */
+
+.sidePanel{
+  background:rgba(10,23,15,.95);
+  border:1px solid #3e553d;
+  border-radius:17px;
+  padding:15px;
+}
+
+.sideTitle{
+  color:#e3c969;
+  font-weight:bold;
+  margin-bottom:12px;
+  border-bottom:1px solid #344735;
+  padding-bottom:8px;
+}
+
+.playerCard{
+  background:#09170f;
+  border:1px solid #30442f;
+  padding:11px;
+  border-radius:10px;
+  margin-bottom:8px;
+}
+
+.playerCard.active{
+  border-color:#d5b85d;
+  box-shadow:0 0 12px #b8953540;
+}
+
+.playerName{
+  font-weight:bold;
+}
+
+.playerStats{
+  margin-top:5px;
+  color:#8f9d91;
+  font-size:11px;
+  line-height:1.7;
+}
+
+.wordBook{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+
+.bookWord{
+  padding:5px 8px;
+  background:#18291d;
+  border:1px solid #38513c;
+  border-radius:12px;
+  font-size:12px;
+}
+
+/* =========================
+   卓
+========================= */
+
+.table{
+  position:relative;
+  min-height:730px;
+  padding:22px;
+  border-radius:30px;
+  background:
+    radial-gradient(circle,#24603a 0%,#17472c 45%,#0e3320 100%);
+  border:9px solid #372d1b;
+  box-shadow:
+    inset 0 0 0 2px #927844,
+    inset 0 0 50px #0007,
+    0 15px 50px #000b;
+  overflow:hidden;
+}
+
+/* 卓の中央 */
+
+.centerTable{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:58%;
+  height:46%;
+  min-height:250px;
+  border-radius:22px;
+  border:2px solid #64805a;
+  background:#0a2818aa;
+  box-shadow:inset 0 0 40px #0008;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+.turnText{
+  color:#e8d27d;
+  font-weight:bold;
+  font-size:17px;
+}
+
+.deckText{
+  color:#aeb9ad;
+  margin-top:5px;
+  font-size:13px;
+}
+
+.progress{
+  display:flex;
+  gap:7px;
+  margin-top:18px;
+}
+
+.progressBox{
+  width:42px;
+  height:42px;
+  border-radius:8px;
+  border:1px solid #69745c;
+  background:#08150d;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+}
+
+.progressBox.done{
+  background:#705b20;
+  border-color:#d5b85d;
+  color:#fff2ae;
+}
+
+/* =========================
+   捨て牌
+========================= */
+
+.riverArea{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:52%;
+  margin-top:120px;
+  z-index:2;
+}
+
+.riverTitle{
+  text-align:center;
+  font-size:11px;
+  color:#9eaa9f;
+  margin-bottom:5px;
+}
+
 .river{
-  min-height:220px;background:#07110b;border:1px dashed #49604e;
-  border-radius:14px;padding:12px
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:5px;
 }
-.tiles{display:flex;flex-wrap:wrap;gap:6px}
-.tile{
-  width:45px;height:57px;border-radius:8px;
-  background:linear-gradient(#fffef0,#d8d2b5);
-  color:#15150e;border:1px solid #999477;
-  display:flex;align-items:center;justify-content:center;
-  font-size:25px;font-weight:bold;cursor:pointer;
-  user-select:none;box-shadow:0 3px 0 #77745c
+
+.discardTile{
+  width:35px;
+  height:42px;
+  background:linear-gradient(#fffef1,#d8d2b7);
+  color:#15150e;
+  border-radius:6px;
+  border:1px solid #9d987a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:19px;
+  font-weight:bold;
+  box-shadow:0 2px 0 #696653;
 }
-.tile.selected{outline:3px solid #e6c76a;transform:translateY(-4px)}
-.tile.hint{box-shadow:0 0 0 3px #65c48b,0 0 18px #65c48b}
-.discard{width:37px;height:44px;font-size:21px}
-.hand{min-height:75px;padding:12px 0}
-.info{
-  display:flex;gap:10px;flex-wrap:wrap;
-  margin:12px 0
+
+/* =========================
+   相手
+========================= */
+
+.opponent{
+  position:absolute;
+  background:#08150eaa;
+  border:1px solid #466044;
+  border-radius:12px;
+  padding:9px 14px;
+  min-width:130px;
+  text-align:center;
 }
-.badge{
-  padding:7px 10px;border:1px solid #36513e;
-  border-radius:9px;background:#09160e
+
+.opponent.top{
+  top:15px;
+  left:50%;
+  transform:translateX(-50%);
 }
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+.opponent.left{
+  left:15px;
+  top:50%;
+  transform:translateY(-50%);
+}
+
+.opponent.right{
+  right:15px;
+  top:50%;
+  transform:translateY(-50%);
+}
+
+.opponentName{
+  font-size:13px;
+  font-weight:bold;
+}
+
+.opponentInfo{
+  color:#8f9d91;
+  font-size:10px;
+  margin-top:3px;
+}
+
+/* =========================
+   鳴き
+========================= */
+
+.meldArea{
+  position:absolute;
+  left:50%;
+  bottom:125px;
+  transform:translateX(-50%);
+  width:80%;
+  text-align:center;
+}
+
 .meld{
-  display:inline-block;padding:8px 11px;margin:4px;
-  background:#292514;border:1px solid #8a7434;border-radius:9px
+  display:inline-block;
+  padding:7px 11px;
+  margin:3px;
+  border-radius:8px;
+  background:#302918;
+  border:1px solid #92763a;
+  color:#f4dc8a;
+  font-size:13px;
 }
-.side section{margin-bottom:20px}
-.side h3{color:#e6c76a;font-size:15px}
-.player{
-  padding:9px;margin:6px 0;background:#0a1710;
-  border:1px solid #304735;border-radius:9px
+
+/* =========================
+   自分の手牌
+========================= */
+
+.handArea{
+  margin-top:15px;
+  background:#07140c;
+  border:1px solid #40543d;
+  border-radius:15px;
+  padding:13px;
 }
-.player.active{border-color:#e6c76a}
+
+.handHeader{
+  display:flex;
+  justify-content:space-between;
+  color:#aeb9ad;
+  font-size:12px;
+  margin-bottom:10px;
+}
+
+.hand{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:7px;
+  min-height:68px;
+}
+
+.tile{
+  width:49px;
+  height:63px;
+  flex:none;
+  border-radius:8px;
+  background:linear-gradient(#fffef2,#d9d4bb);
+  color:#14140e;
+  border:1px solid #aaa486;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:27px;
+  font-weight:bold;
+  cursor:grab;
+  user-select:none;
+  box-shadow:0 3px 0 #74705b;
+  transition:.12s;
+}
+
+.tile:hover{
+  transform:translateY(-3px);
+}
+
+.tile.selected{
+  transform:translateY(-8px);
+  outline:3px solid #e7c969;
+}
+
+.tile.hint{
+  box-shadow:
+    0 0 0 3px #63c58c,
+    0 0 20px #63c58c;
+}
+
+/* =========================
+   アクション
+========================= */
+
+.actionArea{
+  margin-top:12px;
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.action{
+  padding:11px 20px;
+  border-radius:10px;
+  border:1px solid #4d6548;
+  background:#182c1d;
+  color:#fff;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.action.primary{
+  background:#806622;
+  border-color:#b59645;
+}
+
+.action.ron{
+  background:#662727;
+  border-color:#a74d4d;
+}
+
+.action:disabled{
+  opacity:.3;
+  cursor:not-allowed;
+}
+
+/* =========================
+   下情報
+========================= */
+
+.bottomInfo{
+  margin-top:12px;
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+}
+
+.infoBox{
+  background:#0b1b11;
+  border:1px solid #354a37;
+  border-radius:11px;
+  padding:10px;
+}
+
+.infoTitle{
+  color:#aeb9ad;
+  font-size:11px;
+}
+
+.infoValue{
+  margin-top:4px;
+  color:#e8d27d;
+  font-size:17px;
+  font-weight:bold;
+}
+
+.waitTiles{
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  margin-top:7px;
+}
+
+.wait{
+  padding:5px 8px;
+  background:#1a2d1e;
+  border:1px solid #456048;
+  border-radius:7px;
+  font-size:13px;
+}
+
+/* =========================
+   ログ
+========================= */
+
 .log{
-  max-height:220px;overflow:auto;font-size:12px;
-  color:#bdc7bc
+  max-height:270px;
+  overflow:auto;
+  color:#9da99f;
+  font-size:11px;
+  line-height:1.7;
 }
-.word{
-  display:inline-block;padding:4px 8px;margin:3px;
-  border:1px solid #36513e;border-radius:20px;background:#172a1e;
-  font-size:12px
+
+.log div{
+  border-bottom:1px solid #1d3022;
+  padding:3px 0;
 }
+
+/* =========================
+   勝利演出
+========================= */
+
 #overlay{
-  display:none;position:fixed;inset:0;background:#000c;
-  align-items:center;justify-content:center;z-index:10
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:#000b;
+  align-items:center;
+  justify-content:center;
 }
-.modal{
-  width:min(650px,90%);background:#112219;
-  border:1px solid #a68a42;border-radius:20px;
-  padding:30px;text-align:center
+
+.winModal{
+  width:min(650px,92%);
+  padding:40px;
+  border-radius:25px;
+  text-align:center;
+  background:
+    radial-gradient(circle,#263d26,#0e1e13);
+  border:2px solid #c5a64f;
+  box-shadow:
+    0 0 70px #c9a84c55,
+    0 20px 80px #000;
+  animation:winIn .35s ease-out;
 }
-.win{
-  font-size:58px;color:#e8cc70;font-weight:900
+
+@keyframes winIn{
+  from{
+    transform:scale(.7);
+    opacity:0;
+  }
+  to{
+    transform:scale(1);
+    opacity:1;
+  }
 }
-.result{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:20px}
-.result span{
-  padding:10px 15px;background:#2a2515;
-  border:1px solid #8d7839;border-radius:9px;font-size:20px
+
+.winMark{
+  font-size:64px;
+  color:#efd477;
+  font-weight:900;
+  text-shadow:0 0 25px #d7b54e88;
+}
+
+.winName{
+  font-size:25px;
+  margin:10px;
+}
+
+.winWords{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:25px 0;
+}
+
+.winWord{
+  padding:10px 15px;
+  border-radius:9px;
+  background:#2d2613;
+  border:1px solid #a4873c;
+  color:#ffe99b;
+  font-size:20px;
+}
+
+.rematch{
+  padding:13px 35px;
+  border-radius:11px;
+  background:#866c25;
+  color:white;
+  border:1px solid #c5a64f;
+  cursor:pointer;
+  font-weight:bold;
 }
 </style>
 </head>
@@ -107,155 +633,392 @@ input,select{
 <body>
 
 <header>
-  <h1>🀄 ひらがな麻雀</h1>
-  <span>試作版｜2〜4人</span>
+  <div class="logo">🀄 ひらがな麻雀</div>
+
+  <div class="headerRight">
+    <div class="headerBadge">3文字 × 4</div>
+    <div class="headerBadge">2文字 × 1</div>
+    <div class="headerBadge">2〜4人</div>
+  </div>
 </header>
 
-<section id="setup" class="panel">
-  <h2>対局設定</h2>
 
-  <div class="setup">
-    <div>
+<!-- =========================
+     セットアップ
+========================= -->
+
+<section id="setup">
+
+  <div class="setupTitle">
+    <h1>ひらがな麻雀</h1>
+    <p>
+      3文字の言葉を4つ、2文字の言葉を1つ完成させろ。
+    </p>
+  </div>
+
+  <div class="setupGrid">
+
+    <div class="field">
       <label>人数</label>
       <select id="playerCount">
-        <option value="2">2人（試作）</option>
+        <option value="2">2人（テスト）</option>
         <option value="3">3人</option>
         <option value="4">4人</option>
       </select>
     </div>
 
-    <div><label>プレイヤー1</label><input id="name1" value="プレイヤー1"></div>
-    <div><label>プレイヤー2</label><input id="name2" value="プレイヤー2"></div>
-    <div id="name3box"><label>プレイヤー3</label><input id="name3" value="プレイヤー3"></div>
-    <div id="name4box"><label>プレイヤー4</label><input id="name4" value="プレイヤー4"></div>
+    <div class="field">
+      <label>プレイヤー1</label>
+      <input id="name1" value="プレイヤー1">
+    </div>
+
+    <div class="field">
+      <label>プレイヤー2</label>
+      <input id="name2" value="プレイヤー2">
+    </div>
+
+    <div class="field" id="name3box">
+      <label>プレイヤー3</label>
+      <input id="name3" value="プレイヤー3">
+    </div>
+
+    <div class="field" id="name4box">
+      <label>プレイヤー4</label>
+      <input id="name4" value="プレイヤー4">
+    </div>
+
   </div>
 
-  <p>
-    3文字の単語×4 ＋ 2文字の単語×1を完成させて和了する、
-    ひらがな版の麻雀ゲーム試作です。
-  </p>
+  <button class="startButton" id="start">
+    対局開始
+  </button>
 
-  <button id="start" class="primary">対局開始</button>
 </section>
 
-<section id="game" style="display:none">
 
-<div class="layout">
+<!-- =========================
+     ゲーム
+========================= -->
 
-<main class="panel">
+<section id="game">
 
-  <div style="display:flex;justify-content:space-between">
-    <b>手番：<span id="turn"></span></b>
-    <span>山：<b id="deckCount"></b>枚</span>
-  </div>
+<div class="gameLayout">
 
-  <div class="river">
-    <div style="margin-bottom:10px">🀄 捨て牌</div>
-    <div id="river" class="tiles"></div>
-  </div>
+  <!-- 左サイド -->
 
-  <div id="melds"></div>
+  <aside class="sidePanel">
 
-  <div class="info">
-    <div class="badge">3文字：<b id="three"></b> / 4</div>
-    <div class="badge">2文字：<b id="two"></b> / 1</div>
-    <div class="badge">あと：<b id="remain"></b></div>
-  </div>
+    <div class="sideTitle">👥 プレイヤー</div>
 
-  <div class="panel" style="padding:10px">
-    <b>🎯 待ち</b>
-    <span style="color:#9eaa9f">（自分だけ表示）</span>
-    <div id="waits" class="tiles" style="margin-top:8px"></div>
-  </div>
+    <div id="players"></div>
 
-  <h3>自分の手牌</h3>
-  <div id="hand" class="tiles hand"></div>
+    <div class="sideTitle" style="margin-top:22px">
+      📚 通算単語帳
+    </div>
 
-  <div class="actions">
-    <button id="draw" class="primary">ツモる</button>
-    <button id="discard">選択牌を捨てる</button>
-    <button id="chi">チー</button>
-    <button id="ron">ロン！</button>
-    <button id="tsumo">ツモ！</button>
-  </div>
+    <div id="book" class="wordBook"></div>
 
-  <p id="help"></p>
+  </aside>
 
-</main>
 
-<aside class="panel side">
+  <!-- 中央 -->
 
-<section>
-<h3>👥 プレイヤー</h3>
-<div id="players"></div>
-</section>
+  <main>
 
-<section>
-<h3>📖 今回の単語</h3>
-<div id="roundWords"></div>
-</section>
+    <div class="table">
 
-<section>
-<h3>📚 通算図鑑</h3>
-<div id="book"></div>
-</section>
+      <!-- 上家 -->
 
-<section>
-<h3>📜 ログ</h3>
-<div id="log" class="log"></div>
-</section>
+      <div class="opponent top" id="opponentTop">
+        <div class="opponentName">---</div>
+        <div class="opponentInfo">手牌：？？枚</div>
+      </div>
 
-</aside>
+      <!-- 左家 -->
+
+      <div class="opponent left" id="opponentLeft">
+        <div class="opponentName">---</div>
+        <div class="opponentInfo">手牌：？？枚</div>
+      </div>
+
+      <!-- 右家 -->
+
+      <div class="opponent right" id="opponentRight">
+        <div class="opponentName">---</div>
+        <div class="opponentInfo">手牌：？？枚</div>
+      </div>
+
+
+      <!-- 中央 -->
+
+      <div class="centerTable">
+
+        <div class="turnText">
+          手番：<span id="turn">---</span>
+        </div>
+
+        <div class="deckText">
+          山牌残り <b id="deckCount">0</b> 枚
+        </div>
+
+        <div class="progress" id="progress"></div>
+
+      </div>
+
+
+      <!-- 捨て牌 -->
+
+      <div class="riverArea">
+
+        <div class="riverTitle">
+          ―― 捨て牌 ――
+        </div>
+
+        <div id="river" class="river"></div>
+
+      </div>
+
+
+      <!-- 鳴き -->
+
+      <div class="meldArea" id="meldArea"></div>
+
+    </div>
+
+
+    <!-- 手牌 -->
+
+    <div class="handArea">
+
+      <div class="handHeader">
+
+        <span>
+          🀄 あなたの手牌
+        </span>
+
+        <span>
+          ドラッグで並び替え可能
+        </span>
+
+      </div>
+
+      <div id="hand" class="hand"></div>
+
+    </div>
+
+
+    <!-- ボタン -->
+
+    <div class="actionArea">
+
+      <button class="action primary" id="draw">
+        ツモる
+      </button>
+
+      <button class="action" id="discard">
+        牌を捨てる
+      </button>
+
+      <button class="action" id="chi">
+        チー
+      </button>
+
+      <button class="action ron" id="ron">
+        ロン！
+      </button>
+
+      <button class="action primary" id="tsumo">
+        ツモ！
+      </button>
+
+    </div>
+
+
+    <!-- 情報 -->
+
+    <div class="bottomInfo">
+
+      <div class="infoBox">
+
+        <div class="infoTitle">
+          あと何個？
+        </div>
+
+        <div class="infoValue" id="remain">
+          -
+        </div>
+
+      </div>
+
+
+      <div class="infoBox">
+
+        <div class="infoTitle">
+          🎯 待ち牌
+        </div>
+
+        <div id="waits" class="waitTiles"></div>
+
+      </div>
+
+
+      <div class="infoBox">
+
+        <div class="infoTitle">
+          📖 今回の単語
+        </div>
+
+        <div id="roundWords" class="wordBook"></div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <!-- 右サイド -->
+
+  <aside class="sidePanel">
+
+    <div class="sideTitle">
+      📜 対局ログ
+    </div>
+
+    <div id="log" class="log"></div>
+
+  </aside>
 
 </div>
+
 </section>
+
+
+<!-- =========================
+     勝利
+========================= -->
 
 <div id="overlay">
-<div class="modal">
-  <div class="win" id="winType"></div>
-  <h2 id="winner"></h2>
-  <div class="result" id="result"></div>
-  <button id="rematch" class="primary">同じ部屋で再戦</button>
+
+  <div class="winModal">
+
+    <div class="winMark" id="winType">
+      和了！
+    </div>
+
+    <div class="winName" id="winner">
+      ---
+    </div>
+
+    <div class="winWords" id="winWords"></div>
+
+    <button class="rematch" id="rematch">
+      同じ部屋で再戦
+    </button>
+
+  </div>
+
 </div>
-</div>
+
 
 <script>
 
 /* =========================================================
-   ひらがな麻雀 試作版
-   ========================================================= */
-
-/*
-  現段階ではゲーム判定用の登録語彙を使用。
-  正式版ではこの部分を検証済み語彙データに分離する。
-*/
+   登録語彙
+   ※正式版では検証済み語彙データへ分離予定
+========================================================= */
 
 const WORDS = new Set(`
+
 あい あお あき あさ あし あじ あす あせ あと
-あな あめ あゆ いえ いか いき いけ いし いす
-いぬ いま いろ うえ うし うそ うた うみ えき
-えさ おい おか おき おと おに おや
+あな あめ あゆ
+
+いえ いか いき いけ いし いす いぬ いま いろ
+
+うえ うし うそ うた うみ
+
+えき えさ
+
+おい おか おき おと おに おや
+
 かお かき かぎ かさ かぜ かた かに かね かみ
-かめ から きく きの きみ きり くさ くち くつ
-くに くま くも けし こえ こめ ころ
+かめ から
+
+きく きの きみ きり
+
+くさ くち くつ くに くま くも
+
+けし
+
+こえ こめ ころ
+
 さけ さき さく さと さば さめ さら
-しお しか しき しし した しも すい すし
-すな せき せみ そら
-たい たこ たね たに たま ちえ ちず
-ちち つき つく つち つの てら とき
-とけ とり なつ なみ にく にし にわ
-ぬの ねこ のり はこ はし はな はね はる
-ひと ひる ふね へや ほし ほん
+
+しお しか しき しし した しも
+
+すい すし すな
+
+せき せみ
+
+そら
+
+たい たこ たね たに たま
+
+ちえ ちず ちち
+
+つき つく つち つの
+
+てら
+
+とき とけ とり
+
+なつ なみ
+
+にく にし にわ
+
+ぬの
+
+ねこ
+
+のり
+
+はこ はし はな はね はる
+
+ひと ひる
+
+ふね
+
+へや
+
+ほし ほん
+
 まえ まめ まる みず みせ みち みみ
-むし むね めし もり やま ゆき よる
-らく りす りん れき れん わに わら
+
+むし むね
+
+めし
+
+もり
+
+やま ゆき
+
+よる
+
+らく
+
+りす りん
+
+れき れん
+
+わに わら
+
 
 あさひ あかり あきら あなた あゆみ
 いかだ いかり いきもの いちご いなか いのち
 うさぎ うしろ うみべ えがお
 おかし おしろ おすし おとこ おんな
 かがみ かたち かなた からす かわら
-きつね きのこ きもの
+きつね きのこ
 くじら くすり くもり けむり
 こいぬ こいびと こおり こたえ ことば こども
 さかな さくら さとう
@@ -268,20 +1031,43 @@ const WORDS = new Set(`
 まくら まつり みかん みずうみ
 むかし めがね もみじ
 やさい やかた ゆめ ゆめみ
-よる りんご わたし わたげ
+りんご わたし わたげ
+
 `.trim().split(/\s+/));
 
-const KANA = [
-..."あいうえおかきくけこさしすせそたちつてと",
-..."なにぬねのはひふへほまみむめもやゆよ",
-..."らりるれろわをん"
+
+/* =========================================================
+   牌
+========================================================= */
+
+const BASIC = [
+..."あいうえお",
+..."かきくけこ",
+..."さしすせそ",
+..."たちつてと",
+..."なにぬねの",
+..."はひふへほ",
+..."まみむめも",
+..."やゆよ",
+..."らりるれろ",
+..."わをん"
 ];
 
-const EXTRA = [..."がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽゃゅょっ"];
+const EXTRA = [
+..."がぎぐげござじずぜぞ",
+..."だぢづでど",
+..."ばびぶべぼ",
+..."ぱぴぷぺぽ",
+..."ゃゅょっ"
+];
 
-const TILE_TYPES = [...new Set([...KANA,...EXTRA])];
+const TILE_TYPES =
+  [...new Set([...BASIC,...EXTRA])];
 
-/* ---------- 状態 ---------- */
+
+/* =========================================================
+   状態
+========================================================= */
 
 let players=[];
 let hands=[];
@@ -293,400 +1079,708 @@ let deck=[];
 let river=[];
 let turn=0;
 let selected=-1;
+let dragIndex=null;
+
 let gameOver=false;
+
 let pendingRon=null;
 let pendingChi=null;
 
-/* ---------- 共通 ---------- */
 
-function shuffle(a){
-  for(let i=a.length-1;i>0;i--){
+/* =========================================================
+   ユーティリティ
+========================================================= */
+
+function shuffle(arr){
+
+  for(let i=arr.length-1;i>0;i--){
+
     const j=Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
+
+    [arr[i],arr[j]]=
+      [arr[j],arr[i]];
+
   }
-  return a;
+
+  return arr;
 }
+
 
 function log(text){
-  const e=document.createElement("div");
-  e.textContent=text;
-  document.getElementById("log").prepend(e);
+
+  const box=
+    document.getElementById("log");
+
+  const div=
+    document.createElement("div");
+
+  div.textContent=text;
+
+  box.prepend(div);
 }
 
-function countChars(str){
-  const m={};
-  for(const c of str)m[c]=(m[c]||0)+1;
-  return m;
-}
-
-function isWord(str){
-  return WORDS.has(str);
-}
 
 function combinations(arr,n){
+
   const result=[];
+
   function rec(start,picked){
+
     if(picked.length===n){
+
       result.push([...picked]);
       return;
+
     }
-    for(let i=start;i<=arr.length-(n-picked.length);i++){
+
+    for(
+      let i=start;
+      i<=arr.length-(n-picked.length);
+      i++
+    ){
+
       picked.push(i);
+
       rec(i+1,picked);
+
       picked.pop();
+
     }
+
   }
+
   rec(0,[]);
+
   return result;
 }
+
 
 function possibleWords(tiles,length){
+
   const result=[];
+
   for(const ids of combinations(tiles,length)){
-    const word=ids.map(i=>tiles[i]).join("");
-    if(isWord(word)){
-      result.push({word,ids});
+
+    const word=
+      ids.map(i=>tiles[i]).join("");
+
+    if(WORDS.has(word)){
+
+      result.push({
+        word,
+        ids
+      });
+
     }
+
   }
+
   return result;
 }
 
-/* ---------- 和了判定 ---------- */
+
+/* =========================================================
+   和了判定
+========================================================= */
 
 function solve14(tiles){
 
-  if(tiles.length!==14)return null;
+  if(tiles.length!==14)
+    return null;
 
-  const pairs=possibleWords(tiles,2);
+  const pairs=
+    possibleWords(tiles,2);
 
   for(const pair of pairs){
 
-    const remain1=tiles.filter((_,i)=>!pair.ids.includes(i));
+    const rest1=
+      tiles.filter(
+        (_,i)=>!pair.ids.includes(i)
+      );
 
-    const words1=possibleWords(remain1,3);
+    const aList=
+      possibleWords(rest1,3);
 
-    for(const a of words1){
+    for(const a of aList){
 
-      const remain2=remain1.filter((_,i)=>!a.ids.includes(i));
+      const rest2=
+        rest1.filter(
+          (_,i)=>!a.ids.includes(i)
+        );
 
-      const words2=possibleWords(remain2,3);
+      const bList=
+        possibleWords(rest2,3);
 
-      for(const b of words2){
+      for(const b of bList){
 
-        const remain3=remain2.filter((_,i)=>!b.ids.includes(i));
+        const rest3=
+          rest2.filter(
+            (_,i)=>!b.ids.includes(i)
+          );
 
-        const words3=possibleWords(remain3,3);
+        const cList=
+          possibleWords(rest3,3);
 
-        for(const c of words3){
+        for(const c of cList){
 
-          const remain4=remain3.filter((_,i)=>!c.ids.includes(i));
+          const rest4=
+            rest3.filter(
+              (_,i)=>!c.ids.includes(i)
+            );
 
-          const words4=possibleWords(remain4,3);
+          const dList=
+            possibleWords(rest4,3);
 
-          if(words4.length){
+          if(dList.length){
 
             return {
               pair:pair.word,
-              words:[a.word,b.word,c.word,words4[0].word]
+              words:[
+                a.word,
+                b.word,
+                c.word,
+                dList[0].word
+              ]
             };
 
           }
+
         }
+
       }
+
     }
+
   }
 
   return null;
 }
 
-function completedThree(tiles){
-  return [...new Set(possibleWords(tiles,3).map(x=>x.word))];
+
+function completedWords(tiles){
+
+  return [
+    ...new Set(
+      possibleWords(tiles,3)
+        .map(x=>x.word)
+    )
+  ];
+
 }
+
 
 function waitsFor(tiles){
 
-  if(tiles.length!==13)return [];
+  if(tiles.length!==13)
+    return [];
 
   const result=[];
 
   for(const c of TILE_TYPES){
 
-    if(solve14([...tiles,c])){
+    if(
+      solve14(
+        [...tiles,c]
+      )
+    ){
+
       result.push(c);
+
     }
+
   }
 
   return result;
 }
 
-/* ---------- 山 ---------- */
+
+/* =========================================================
+   山
+========================================================= */
 
 function makeDeck(){
 
-  const d=[];
+  const result=[];
 
   for(const c of TILE_TYPES){
+
     for(let i=0;i<4;i++){
-      d.push(c);
+
+      result.push(c);
+
     }
+
   }
 
-  return shuffle(d);
+  return shuffle(result);
 }
 
-/* ---------- 開始 ---------- */
 
-document.getElementById("playerCount").onchange=function(){
+/* =========================================================
+   プレイヤー人数変更
+========================================================= */
 
-  const n=Number(this.value);
+document
+.getElementById("playerCount")
+.addEventListener("change",function(){
 
-  document.getElementById("name3box").style.display=n>=3?"block":"none";
-  document.getElementById("name4box").style.display=n>=4?"block":"none";
+  const n=
+    Number(this.value);
 
-};
+  document
+    .getElementById("name3box")
+    .style.display=
+      n>=3 ? "block":"none";
 
-document.getElementById("start").onclick=startGame;
+  document
+    .getElementById("name4box")
+    .style.display=
+      n>=4 ? "block":"none";
+
+});
+
+
+/* =========================================================
+   ゲーム開始
+========================================================= */
+
+document
+.getElementById("start")
+.addEventListener("click",startGame);
+
 
 function startGame(){
 
-  const n=Number(document.getElementById("playerCount").value);
+  const n=
+    Number(
+      document
+        .getElementById("playerCount")
+        .value
+    );
 
   players=[];
 
   for(let i=1;i<=n;i++){
 
     players.push({
-      name:document.getElementById("name"+i).value.trim()||"プレイヤー"+i
+
+      name:
+        document
+          .getElementById("name"+i)
+          .value
+          .trim()
+          ||
+          "プレイヤー"+i
+
     });
 
   }
 
-  wins=Array(n).fill(0);
+  wins=
+    Array(n).fill(0);
 
-  stats=Array.from({length:n},()=>({
-    ron:0,
-    tsumo:0,
-    chi:0
-  }));
+  stats=
+    Array.from(
+      {length:n},
+      ()=>({
+        ron:0,
+        tsumo:0,
+        chi:0
+      })
+    );
 
-  books=Array.from({length:n},()=>new Set());
+  books=
+    Array.from(
+      {length:n},
+      ()=>new Set()
+    );
 
-  document.getElementById("setup").style.display="none";
-  document.getElementById("game").style.display="block";
+  document
+    .getElementById("setup")
+    .style.display="none";
+
+  document
+    .getElementById("game")
+    .style.display="block";
 
   newRound();
 
 }
 
-/* ---------- 新しい局 ---------- */
+
+/* =========================================================
+   新しい局
+========================================================= */
 
 function newRound(){
 
-  deck=makeDeck();
+  deck=
+    makeDeck();
+
   river=[];
-  melds=Array.from({length:players.length},()=>[]);
-  hands=Array.from({length:players.length},()=>[]);
+
+  melds=
+    Array.from(
+      {length:players.length},
+      ()=>[]
+    );
+
+  hands=
+    Array.from(
+      {length:players.length},
+      ()=>[]
+    );
+
   turn=0;
+
   selected=-1;
+
   gameOver=false;
+
   pendingRon=null;
   pendingChi=null;
 
-  for(let r=0;r<13;r++){
+  /*
+    最初は全員13枚
+  */
+
+  for(let i=0;i<13;i++){
 
     for(let p=0;p<players.length;p++){
 
-      hands[p].push(deck.pop());
+      hands[p].push(
+        deck.pop()
+      );
 
     }
 
   }
 
-  document.getElementById("overlay").style.display="none";
-  document.getElementById("log").innerHTML="";
+  document
+    .getElementById("overlay")
+    .style.display="none";
 
-  log("対局開始！");
+  document
+    .getElementById("log")
+    .innerHTML="";
+
+  log("新しい局が始まった。");
+
   render();
 
 }
 
-/* ---------- ツモ ---------- */
 
-document.getElementById("draw").onclick=function(){
+/* =========================================================
+   ツモ
+========================================================= */
 
-  if(gameOver)return;
+document
+.getElementById("draw")
+.addEventListener("click",()=>{
+
+  if(gameOver)
+    return;
 
   if(turn!==0){
-    log("今は相手の手番です。");
+
+    log("今は相手の手番。");
+
     return;
+
   }
 
   if(hands[0].length>=14){
-    log("すでに14枚あります。先に牌を捨ててください。");
+
+    log("先に牌を捨てよう。");
+
     return;
+
   }
 
   if(deck.length===0){
-    log("山がなくなりました。");
+
+    log("山牌がなくなった。");
+
     return;
+
   }
 
-  hands[0].push(deck.pop());
+  hands[0].push(
+    deck.pop()
+  );
 
-  const result=solve14(hands[0]);
+  selected=-1;
 
   render();
 
+  const result=
+    solve14(hands[0]);
+
   if(result){
-    showWin(0,result,"ツモ");
+
+    showWin(
+      0,
+      result,
+      "ツモ"
+    );
+
   }
 
-};
+});
 
-/* ---------- 捨てる ---------- */
 
-document.getElementById("discard").onclick=function(){
+/* =========================================================
+   捨てる
+========================================================= */
 
-  if(gameOver||turn!==0)return;
+document
+.getElementById("discard")
+.addEventListener("click",()=>{
+
+  if(
+    gameOver ||
+    turn!==0
+  )
+    return;
 
   if(hands[0].length!==14){
-    log("14枚になるまでツモってください。");
+
+    log("14枚になるまでツモってね。");
+
     return;
+
   }
 
   if(selected<0){
-    log("捨てる牌を選んでください。");
+
+    log("捨てる牌を選んでね。");
+
     return;
+
   }
 
-  const c=hands[0].splice(selected,1)[0];
+  const char=
+    hands[0].splice(
+      selected,
+      1
+    )[0];
 
   selected=-1;
 
   river.push({
+
     player:0,
-    char:c
+    char
+
   });
 
-  log(players[0].name+"："+c+"を捨てた");
+  log(
+    players[0].name+
+    " が「"+
+    char+
+    "」を捨てた"
+  );
 
-  checkDiscard(c,0);
+  checkDiscard(
+    char,
+    0
+  );
 
-};
+});
 
-/* ---------- ロン ---------- */
 
-document.getElementById("ron").onclick=function(){
+/* =========================================================
+   ロン
+========================================================= */
 
-  if(!pendingRon)return;
+document
+.getElementById("ron")
+.addEventListener("click",()=>{
 
-  const data=pendingRon;
+  if(!pendingRon)
+    return;
+
+  const data=
+    pendingRon;
 
   pendingRon=null;
 
   stats[0].ron++;
 
-  showWin(0,data.result,"ロン");
+  showWin(
+    0,
+    data.result,
+    "ロン！"
+  );
 
-};
+});
 
-/* ---------- ツモ ---------- */
 
-document.getElementById("tsumo").onclick=function(){
+/* =========================================================
+   ツモ和了
+========================================================= */
 
-  const result=solve14(hands[0]);
+document
+.getElementById("tsumo")
+.addEventListener("click",()=>{
 
-  if(result){
+  if(
+    gameOver ||
+    turn!==0
+  )
+    return;
 
-    stats[0].tsumo++;
+  const result=
+    solve14(hands[0]);
 
-    showWin(0,result,"ツモ");
+  if(!result)
+    return;
 
-  }
+  stats[0].tsumo++;
 
-};
+  showWin(
+    0,
+    result,
+    "ツモ！"
+  );
 
-/* ---------- チー ---------- */
+});
 
-document.getElementById("chi").onclick=function(){
 
-  if(!pendingChi)return;
+/* =========================================================
+   チー
+========================================================= */
 
-  const data=pendingChi;
+document
+.getElementById("chi")
+.addEventListener("click",()=>{
 
-  if(!data.choices.length)return;
+  if(!pendingChi)
+    return;
 
-  const choice=data.choices[0];
+  const data=
+    pendingChi;
 
-  const ownIndexes=choice.ids.filter(i=>i<hands[0].length);
+  if(!data.choices.length)
+    return;
 
-  hands[0]=hands[0].filter((_,i)=>!ownIndexes.includes(i));
+  /*
+    現段階では最初の候補を採用。
+    後で候補選択UIを追加する。
+  */
 
-  melds[0].push(choice.word);
+  const choice=
+    data.choices[0];
+
+  const discardIndex=
+    hands[0].length;
+
+  const ownIndexes=
+    choice.ids.filter(
+      i=>i!==discardIndex
+    );
+
+  hands[0]=
+    hands[0].filter(
+      (_,i)=>!ownIndexes.includes(i)
+    );
+
+  melds[0].push(
+    choice.word
+  );
 
   stats[0].chi++;
 
-  books[0].add(choice.word);
+  books[0].add(
+    choice.word
+  );
 
   pendingChi=null;
 
-  log("チー！「"+choice.word+"」");
-
-  if(deck.length)hands[0].push(deck.pop());
+  log(
+    "🀄 チー！ "+
+    choice.word
+  );
 
   render();
 
-};
+});
 
-/* ---------- 捨て牌処理 ---------- */
+
+/* =========================================================
+   捨て牌処理
+========================================================= */
 
 function checkDiscard(char,discarder){
 
   pendingRon=null;
   pendingChi=null;
 
-  /* 人間のロン */
-
-  const candidate=[...hands[0],char];
+  /*
+    ロン
+  */
 
   if(discarder!==0){
 
-    const result=solve14(candidate);
+    const result=
+      solve14(
+        [...hands[0],char]
+      );
 
     if(result){
 
       pendingRon={
-        result:result,
-        char:char
+        result,
+        char
       };
+
+      log(
+        "🔥 「"+
+        char+
+        "」でロンできる！"
+      );
 
       render();
 
-      log("🔥 "+char+"でロンできます！");
       return;
 
     }
 
   }
 
-  /* 人間のチー */
+  /*
+    チー
+  */
 
   if(discarder!==0){
 
-    const all=[...hands[0],char];
+    const all=[
+      ...hands[0],
+      char
+    ];
 
-    const choices=possibleWords(all,3).filter(x=>{
-      return x.ids.includes(hands[0].length);
-    });
+    const choices=
+      possibleWords(all,3)
+      .filter(x=>
+        x.ids.includes(
+          hands[0].length
+        )
+      );
 
     if(choices.length){
 
       pendingChi={
-        char:char,
-        choices:choices
+        char,
+        choices
       };
 
-      log("🀄 チー候補："+choices.map(x=>x.word).join(" / "));
+      log(
+        "🀄 チー候補："+
+        choices
+          .map(x=>x.word)
+          .join(" / ")
+      );
 
       render();
 
@@ -700,59 +1794,100 @@ function checkDiscard(char,discarder){
 
 }
 
-/* ---------- 次の手番 ---------- */
+
+/* =========================================================
+   次の手番
+========================================================= */
 
 function nextTurn(){
 
-  if(gameOver)return;
+  if(gameOver)
+    return;
 
-  turn=(turn+1)%players.length;
+  turn=
+    (turn+1)
+    %
+    players.length;
 
   render();
 
   if(turn!==0){
 
-    setTimeout(aiTurn,600);
+    setTimeout(
+      aiTurn,
+      650
+    );
 
   }
 
 }
 
-/* ---------- AI ---------- */
+
+/* =========================================================
+   AI
+========================================================= */
 
 function aiTurn(){
 
-  if(gameOver)return;
+  if(gameOver)
+    return;
 
   const p=turn;
 
-  if(deck.length===0)return;
+  if(deck.length===0){
 
-  hands[p].push(deck.pop());
+    log("山牌がなくなった。");
 
-  const result=solve14(hands[p]);
+    return;
+
+  }
+
+  hands[p].push(
+    deck.pop()
+  );
+
+  const result=
+    solve14(
+      hands[p]
+    );
 
   if(result){
 
-    showWin(p,result,"ツモ");
+    stats[p].tsumo++;
+
+    showWin(
+      p,
+      result,
+      "ツモ！"
+    );
+
     return;
 
   }
 
   /*
-    試作AI：
-    完成単語数が少なくなる牌を優先して捨てる。
+    できるだけ単語候補を
+    残す牌を捨てる
   */
 
   let bestIndex=0;
-  let bestScore=999;
+  let bestScore=-1;
 
-  for(let i=0;i<hands[p].length;i++){
+  for(
+    let i=0;
+    i<hands[p].length;
+    i++
+  ){
 
-    const test=hands[p].filter((_,j)=>j!==i);
-    const score=completedThree(test).length;
+    const test=
+      hands[p].filter(
+        (_,j)=>j!==i
+      );
 
-    if(score<bestScore){
+    const score=
+      completedWords(test).length;
+
+    if(score>bestScore){
 
       bestScore=score;
       bestIndex=i;
@@ -761,29 +1896,48 @@ function aiTurn(){
 
   }
 
-  const c=hands[p].splice(bestIndex,1)[0];
+  const char=
+    hands[p].splice(
+      bestIndex,
+      1
+    )[0];
 
   river.push({
     player:p,
-    char:c
+    char
   });
 
-  log(players[p].name+"："+c+"を捨てた");
+  log(
+    players[p].name+
+    " が「"+
+    char+
+    "」を捨てた"
+  );
 
-  /* 人間ロン */
+  /*
+    人間のロン判定
+  */
 
-  const humanResult=solve14([...hands[0],c]);
+  const humanResult=
+    solve14(
+      [...hands[0],char]
+    );
 
   if(humanResult){
 
     pendingRon={
       result:humanResult,
-      char:c
+      char
     };
+
+    log(
+      "🔥 「"+
+      char+
+      "」でロンできる！"
+    );
 
     render();
 
-    log("🔥 "+c+"でロンできます！");
     return;
 
   }
@@ -792,9 +1946,16 @@ function aiTurn(){
 
 }
 
-/* ---------- 和了 ---------- */
 
-function showWin(player,result,type){
+/* =========================================================
+   和了
+========================================================= */
+
+function showWin(
+  player,
+  result,
+  type
+){
 
   gameOver=true;
 
@@ -805,207 +1966,489 @@ function showWin(player,result,type){
     result.pair
   ];
 
-  words.forEach(w=>{
-    books[player].add(w);
-  });
+  words.forEach(w=>
+    books[player].add(w)
+  );
 
-  document.getElementById("winType").textContent=type+"！";
+  document
+    .getElementById("winType")
+    .textContent=
+      type;
 
-  document.getElementById("winner").textContent=
-    players[player].name+" の和了！";
+  document
+    .getElementById("winner")
+    .textContent=
+      players[player].name+
+      " の和了！";
 
-  document.getElementById("result").innerHTML=
-    words.map(w=>"<span>"+w+"</span>").join("");
+  document
+    .getElementById("winWords")
+    .innerHTML=
+      words
+        .map(w=>
+          `<span class="winWord">${w}</span>`
+        )
+        .join("");
 
-  document.getElementById("overlay").style.display="flex";
+  document
+    .getElementById("overlay")
+    .style.display="flex";
 
   render();
 
 }
 
-document.getElementById("rematch").onclick=newRound;
 
-/* ---------- ドラッグ並び替え ---------- */
+/* =========================================================
+   再戦
+========================================================= */
 
-let dragIndex=null;
+document
+.getElementById("rematch")
+.addEventListener(
+  "click",
+  newRound
+);
 
-/* ---------- 描画 ---------- */
+
+/* =========================================================
+   描画
+========================================================= */
 
 function render(){
 
-  document.getElementById("turn").textContent=
-    players[turn]?.name||"";
+  if(!players.length)
+    return;
 
-  document.getElementById("deckCount").textContent=
-    deck.length;
+
+  /* 手番 */
+
+  document
+    .getElementById("turn")
+    .textContent=
+      players[turn].name;
+
+
+  /* 山 */
+
+  document
+    .getElementById("deckCount")
+    .textContent=
+      deck.length;
+
 
   /* 捨て牌 */
 
-  document.getElementById("river").innerHTML=
-    river.map(x=>
-      `<div class="tile discard" title="${players[x.player].name}">
-        ${x.char}
-      </div>`
-    ).join("");
+  document
+    .getElementById("river")
+    .innerHTML=
+      river
+        .map(x=>
+          `<div
+            class="discardTile"
+            title="${players[x.player].name}"
+          >${x.char}</div>`
+        )
+        .join("");
+
+
+  /* 進行 */
+
+  const words=
+    completedWords(
+      hands[0]
+    );
+
+  const pair=
+    possibleWords(
+      hands[0],
+      2
+    );
+
+  const progress=
+    document
+      .getElementById("progress");
+
+  progress.innerHTML="";
+
+  for(let i=0;i<5;i++){
+
+    const box=
+      document.createElement("div");
+
+    box.className=
+      "progressBox";
+
+    if(
+      i<Math.min(
+        words.length,
+        4
+      )
+    ){
+
+      box.classList.add("done");
+      box.textContent="3";
+
+    }
+    else if(
+      i===4 &&
+      pair.length
+    ){
+
+      box.classList.add("done");
+      box.textContent="2";
+
+    }
+    else{
+
+      box.textContent=
+        i===4
+          ? "2"
+          : "3";
+
+    }
+
+    progress.appendChild(box);
+
+  }
+
 
   /* 手牌 */
 
-  const hand=document.getElementById("hand");
+  const hand=
+    document.getElementById("hand");
 
   hand.innerHTML="";
 
-  hands[0].forEach((c,i)=>{
+  /*
+    3文字候補に含まれる牌を
+    光らせる
+  */
 
-    const tile=document.createElement("div");
+  const candidates=
+    new Set();
 
-    tile.className="tile";
+  for(
+    const x of
+    possibleWords(
+      hands[0],
+      3
+    )
+  ){
 
-    tile.textContent=c;
+    x.ids.forEach(i=>
+      candidates.add(i)
+    );
 
-    if(i===selected)
-      tile.classList.add("selected");
+  }
 
-    /*
-      完成可能な3文字単語に含まれている牌を
-      自分だけ軽くハイライト。
-    */
+  hands[0].forEach(
+    (char,i)=>{
 
-    const complete=completedThree(hands[0]);
+      const tile=
+        document.createElement("div");
 
-    if(complete.some(w=>w.includes(c)))
-      tile.classList.add("hint");
+      tile.className="tile";
 
-    tile.draggable=true;
+      tile.textContent=char;
 
-    tile.onclick=()=>{
-      selected=i;
-      render();
-    };
+      if(i===selected){
 
-    tile.ondragstart=()=>{
-      dragIndex=i;
-    };
+        tile.classList.add(
+          "selected"
+        );
 
-    tile.ondragover=e=>e.preventDefault();
+      }
 
-    tile.ondrop=()=>{
+      if(
+        candidates.has(i)
+      ){
 
-      if(dragIndex===null)return;
+        tile.classList.add(
+          "hint"
+        );
 
-      const x=hands[0].splice(dragIndex,1)[0];
+      }
 
-      hands[0].splice(i,0,x);
+      tile.draggable=true;
 
-      dragIndex=null;
-      selected=-1;
+      tile.onclick=()=>{
 
-      render();
+        selected=i;
 
-    };
+        render();
 
-    hand.appendChild(tile);
+      };
 
-  });
+      tile.ondragstart=()=>{
+
+        dragIndex=i;
+
+      };
+
+      tile.ondragover=e=>
+        e.preventDefault();
+
+      tile.ondrop=()=>{
+
+        if(
+          dragIndex===null ||
+          dragIndex===i
+        )
+          return;
+
+        const x=
+          hands[0]
+            .splice(
+              dragIndex,
+              1
+            )[0];
+
+        hands[0]
+          .splice(
+            i,
+            0,
+            x
+          );
+
+        dragIndex=null;
+        selected=-1;
+
+        render();
+
+      };
+
+      hand.appendChild(tile);
+
+    }
+  );
+
 
   /* 鳴き */
 
-  document.getElementById("melds").innerHTML=
-    melds[0].map(w=>
-      `<span class="meld">🀄 チー「<b>${w}</b>」</span>`
-    ).join("");
+  document
+    .getElementById("meldArea")
+    .innerHTML=
+      melds[0]
+        .map(w=>
+          `<span class="meld">
+            🀄 ${w}
+          </span>`
+        )
+        .join("");
 
-  /* 進捗 */
 
-  const three=completedThree(hands[0]);
+  /* あと何個 */
 
-  document.getElementById("three").textContent=
-    Math.min(three.length,4);
+  const completed=
+    Math.min(
+      words.length,
+      4
+    )
+    +
+    (pair.length ? 1:0);
 
-  const pair=possibleWords(hands[0],2);
+  document
+    .getElementById("remain")
+    .textContent=
+      Math.max(
+        0,
+        5-completed
+      )+
+      "個";
 
-  document.getElementById("two").textContent=
-    pair.length?1:0;
 
-  const remain=
-    Math.max(
-      0,
-      5-Math.min(three.length,4)-(pair.length?1:0)
+  /* 待ち牌 */
+
+  const waits=
+    waitsFor(
+      hands[0]
     );
 
-  document.getElementById("remain").textContent=remain+"個";
+  document
+    .getElementById("waits")
+    .innerHTML=
+      waits.length
+        ?
+        waits
+          .map(c=>
+            `<span class="wait">${c}</span>`
+          )
+          .join("")
+        :
+        `<span style="color:#7f8d82">
+          テンパイしていません
+        </span>`;
 
-  /* 待ち */
-
-  const waits=waitsFor(hands[0]);
-
-  document.getElementById("waits").innerHTML=
-    waits.length
-      ?waits.map(c=>`<span class="word">${c} が必要</span>`).join("")
-      :'<span style="color:#879389">現在テンパイしていません</span>';
 
   /* ボタン */
 
-  document.getElementById("draw").disabled=
-    gameOver||turn!==0||hands[0].length>=14;
+  document
+    .getElementById("draw")
+    .disabled=
+      gameOver ||
+      turn!==0 ||
+      hands[0].length>=14;
 
-  document.getElementById("discard").disabled=
-    gameOver||turn!==0||hands[0].length!==14;
+  document
+    .getElementById("discard")
+    .disabled=
+      gameOver ||
+      turn!==0 ||
+      hands[0].length!==14;
 
-  document.getElementById("ron").disabled=
-    !pendingRon;
+  document
+    .getElementById("ron")
+    .disabled=
+      !pendingRon;
 
-  document.getElementById("chi").disabled=
-    !pendingChi;
+  document
+    .getElementById("chi")
+    .disabled=
+      !pendingChi;
 
-  document.getElementById("tsumo").disabled=
-    !solve14(hands[0]);
+  document
+    .getElementById("tsumo")
+    .disabled=
+      gameOver ||
+      turn!==0 ||
+      !solve14(hands[0]);
+
 
   /* プレイヤー */
 
-  document.getElementById("players").innerHTML=
-    players.map((p,i)=>`
+  const playerBox=
+    document.getElementById(
+      "players"
+    );
 
-      <div class="player ${i===turn?"active":""}">
+  playerBox.innerHTML=
+    players
+      .map((p,i)=>`
 
-        <b>${p.name}</b>
+        <div class="playerCard
+          ${i===turn?"active":""}">
 
-        <div style="font-size:12px;color:#9eaa9f">
-          勝利：${wins[i]}
-          ／ ロン：${stats[i].ron}
-          ／ ツモ：${stats[i].tsumo}
-          ／ チー：${stats[i].chi}
+          <div class="playerName">
+            ${p.name}
+          </div>
+
+          <div class="playerStats">
+
+            🏆 勝利：${wins[i]}<br>
+
+            🔥 ロン：${stats[i].ron}
+           　
+            ✨ ツモ：${stats[i].tsumo}<br>
+
+            🀄 チー：${stats[i].chi}
+
+          </div>
+
         </div>
 
-        <div style="font-size:12px;color:#9eaa9f">
-          鳴き：
-          ${melds[i].join("・")||"なし"}
-        </div>
+      `)
+      .join("");
 
-      </div>
 
-    `).join("");
+  /* 相手表示 */
+
+  updateOpponents();
+
 
   /* 図鑑 */
 
-  document.getElementById("book").innerHTML=
-    [...books[0]].sort().map(w=>
-      `<span class="word">${w}</span>`
-    ).join("")
-    ||'<span style="color:#879389">まだありません</span>';
+  document
+    .getElementById("book")
+    .innerHTML=
+      [...books[0]]
+        .sort()
+        .map(w=>
+          `<span class="bookWord">
+            ${w}
+          </span>`
+        )
+        .join("")
+      ||
+      `<span style="color:#7f8d82">
+        まだ発見なし
+      </span>`;
+
 
   /* 今回の単語 */
 
-  document.getElementById("roundWords").innerHTML=
-    [...books[0]].slice(-20).map(w=>
-      `<span class="word">${w}</span>`
-    ).join("");
+  document
+    .getElementById("roundWords")
+    .innerHTML=
+      [...books[0]]
+        .slice(-12)
+        .map(w=>
+          `<span class="bookWord">
+            ${w}
+          </span>`
+        )
+        .join("")
+      ||
+      `<span style="color:#7f8d82">
+        まだなし
+      </span>`;
 
-  document.getElementById("help").textContent=
-    gameOver
-      ?"対局終了"
-      :turn===0
-        ?"あなたの番：ツモ → 必要なら和了 → 牌を選んで捨てる"
-        :"相手の番：AIが自動で進行中";
+}
+
+
+/* =========================================================
+   相手表示
+========================================================= */
+
+function updateOpponents(){
+
+  const positions=[
+    "opponentTop",
+    "opponentLeft",
+    "opponentRight"
+  ];
+
+  const others=
+    players
+      .map((p,i)=>({p,i}))
+      .filter(x=>x.i!==0);
+
+  positions.forEach(
+    (id,index)=>{
+
+      const el=
+        document.getElementById(id);
+
+      if(!el)
+        return;
+
+      const target=
+        others[index];
+
+      if(!target){
+
+        el.style.display="none";
+
+        return;
+
+      }
+
+      el.style.display="block";
+
+      el.innerHTML=`
+
+        <div class="opponentName">
+          ${target.p.name}
+        </div>
+
+        <div class="opponentInfo">
+          手牌：${hands[target.i].length}枚
+        </div>
+
+      `;
+
+    }
+  );
 
 }
 
