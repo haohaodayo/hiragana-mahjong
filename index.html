@@ -1,2458 +1,326 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ひらがな麻雀</title>
-
+<title>ひらがな麻雀 - 更新版</title>
 <style>
-*{
-  box-sizing:border-box;
-}
-
-body{
-  margin:0;
-  min-height:100vh;
-  background:
-    radial-gradient(circle at center,#183c29 0%,#0a1b12 48%,#050b08 100%);
-  color:#f7f3df;
-  font-family:
-    "Yu Gothic",
-    "Hiragino Kaku Gothic ProN",
-    Meiryo,
-    sans-serif;
-}
-
-/* =========================
-   ヘッダー
-========================= */
-
-header{
-  height:70px;
-  padding:0 28px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  background:rgba(4,10,7,.85);
-  border-bottom:1px solid #526348;
-  box-shadow:0 4px 20px #0008;
-}
-
-.logo{
-  font-size:26px;
-  font-weight:900;
-  color:#e7cb72;
-  letter-spacing:2px;
-}
-
-.headerRight{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-
-.headerBadge{
-  padding:7px 13px;
-  border:1px solid #776633;
-  border-radius:20px;
-  color:#d8c78a;
-  background:#16180f;
-  font-size:13px;
-}
-
-/* =========================
-   セットアップ
-========================= */
-
-#setup{
-  width:min(900px,92%);
-  margin:60px auto;
-  padding:38px;
-  background:rgba(11,26,17,.95);
-  border:1px solid #586744;
-  border-radius:24px;
-  box-shadow:0 20px 60px #0008;
-}
-
-.setupTitle{
-  text-align:center;
-  margin-bottom:30px;
-}
-
-.setupTitle h1{
-  margin:0;
-  color:#ead27b;
-  font-size:42px;
-}
-
-.setupTitle p{
-  color:#9eaa9f;
-}
-
-.setupGrid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:15px;
-}
-
-.field label{
-  display:block;
-  color:#aeb8a9;
-  font-size:13px;
-  margin-bottom:6px;
-}
-
-input,select{
-  width:100%;
-  padding:13px;
-  border-radius:10px;
-  border:1px solid #43573e;
-  background:#07120c;
-  color:#fff;
-  font-size:15px;
-}
-
-.startButton{
-  display:block;
-  margin:30px auto 0;
-  padding:15px 55px;
-  font-size:18px;
-  font-weight:bold;
-  border-radius:13px;
-  border:1px solid #b08d3c;
-  background:linear-gradient(#987c2b,#63501b);
-  color:#fff8d8;
-  cursor:pointer;
-}
-
-/* =========================
-   ゲーム全体
-========================= */
-
-#game{
-  display:none;
-  width:min(1450px,96%);
-  margin:20px auto;
-}
-
-.gameLayout{
-  display:grid;
-  grid-template-columns:220px 1fr 280px;
-  gap:15px;
-}
-
-@media(max-width:1100px){
-  .gameLayout{
-    grid-template-columns:1fr;
-  }
-}
-
-/* =========================
-   サイド
-========================= */
-
-.sidePanel{
-  background:rgba(10,23,15,.95);
-  border:1px solid #3e553d;
-  border-radius:17px;
-  padding:15px;
-}
-
-.sideTitle{
-  color:#e3c969;
-  font-weight:bold;
-  margin-bottom:12px;
-  border-bottom:1px solid #344735;
-  padding-bottom:8px;
-}
-
-.playerCard{
-  background:#09170f;
-  border:1px solid #30442f;
-  padding:11px;
-  border-radius:10px;
-  margin-bottom:8px;
-}
-
-.playerCard.active{
-  border-color:#d5b85d;
-  box-shadow:0 0 12px #b8953540;
-}
-
-.playerName{
-  font-weight:bold;
-}
-
-.playerStats{
-  margin-top:5px;
-  color:#8f9d91;
-  font-size:11px;
-  line-height:1.7;
-}
-
-.wordBook{
-  display:flex;
-  flex-wrap:wrap;
-  gap:5px;
-}
-
-.bookWord{
-  padding:5px 8px;
-  background:#18291d;
-  border:1px solid #38513c;
-  border-radius:12px;
-  font-size:12px;
-}
-
-/* =========================
-   卓
-========================= */
-
-.table{
-  position:relative;
-  min-height:730px;
-  padding:22px;
-  border-radius:30px;
-  background:
-    radial-gradient(circle,#24603a 0%,#17472c 45%,#0e3320 100%);
-  border:9px solid #372d1b;
-  box-shadow:
-    inset 0 0 0 2px #927844,
-    inset 0 0 50px #0007,
-    0 15px 50px #000b;
-  overflow:hidden;
-}
-
-/* 卓の中央 */
-
-.centerTable{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  width:58%;
-  height:46%;
-  min-height:250px;
-  border-radius:22px;
-  border:2px solid #64805a;
-  background:#0a2818aa;
-  box-shadow:inset 0 0 40px #0008;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-}
-
-.turnText{
-  color:#e8d27d;
-  font-weight:bold;
-  font-size:17px;
-}
-
-.deckText{
-  color:#aeb9ad;
-  margin-top:5px;
-  font-size:13px;
-}
-
-.progress{
-  display:flex;
-  gap:7px;
-  margin-top:18px;
-}
-
-.progressBox{
-  width:42px;
-  height:42px;
-  border-radius:8px;
-  border:1px solid #69745c;
-  background:#08150d;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:13px;
-}
-
-.progressBox.done{
-  background:#705b20;
-  border-color:#d5b85d;
-  color:#fff2ae;
-}
-
-/* =========================
-   捨て牌
-========================= */
-
-.riverArea{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  width:52%;
-  margin-top:120px;
-  z-index:2;
-}
-
-.riverTitle{
-  text-align:center;
-  font-size:11px;
-  color:#9eaa9f;
-  margin-bottom:5px;
-}
-
-.river{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:5px;
-}
-
-.discardTile{
-  width:35px;
-  height:42px;
-  background:linear-gradient(#fffef1,#d8d2b7);
-  color:#15150e;
-  border-radius:6px;
-  border:1px solid #9d987a;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:19px;
-  font-weight:bold;
-  box-shadow:0 2px 0 #696653;
-}
-
-/* =========================
-   相手
-========================= */
-
-.opponent{
-  position:absolute;
-  background:#08150eaa;
-  border:1px solid #466044;
-  border-radius:12px;
-  padding:9px 14px;
-  min-width:130px;
-  text-align:center;
-}
-
-.opponent.top{
-  top:15px;
-  left:50%;
-  transform:translateX(-50%);
-}
-
-.opponent.left{
-  left:15px;
-  top:50%;
-  transform:translateY(-50%);
-}
-
-.opponent.right{
-  right:15px;
-  top:50%;
-  transform:translateY(-50%);
-}
-
-.opponentName{
-  font-size:13px;
-  font-weight:bold;
-}
-
-.opponentInfo{
-  color:#8f9d91;
-  font-size:10px;
-  margin-top:3px;
-}
-
-/* =========================
-   鳴き
-========================= */
-
-.meldArea{
-  position:absolute;
-  left:50%;
-  bottom:125px;
-  transform:translateX(-50%);
-  width:80%;
-  text-align:center;
-}
-
-.meld{
-  display:inline-block;
-  padding:7px 11px;
-  margin:3px;
-  border-radius:8px;
-  background:#302918;
-  border:1px solid #92763a;
-  color:#f4dc8a;
-  font-size:13px;
-}
-
-/* =========================
-   自分の手牌
-========================= */
-
-.handArea{
-  margin-top:15px;
-  background:#07140c;
-  border:1px solid #40543d;
-  border-radius:15px;
-  padding:13px;
-}
-
-.handHeader{
-  display:flex;
-  justify-content:space-between;
-  color:#aeb9ad;
-  font-size:12px;
-  margin-bottom:10px;
-}
-
-.hand{
-  display:flex;
-  justify-content:center;
-  flex-wrap:wrap;
-  gap:7px;
-  min-height:68px;
-}
-
-.tile{
-  width:49px;
-  height:63px;
-  flex:none;
-  border-radius:8px;
-  background:linear-gradient(#fffef2,#d9d4bb);
-  color:#14140e;
-  border:1px solid #aaa486;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:27px;
-  font-weight:bold;
-  cursor:grab;
-  user-select:none;
-  box-shadow:0 3px 0 #74705b;
-  transition:.12s;
-}
-
-.tile:hover{
-  transform:translateY(-3px);
-}
-
-.tile.selected{
-  transform:translateY(-8px);
-  outline:3px solid #e7c969;
-}
-
-.tile.hint{
-  box-shadow:
-    0 0 0 3px #63c58c,
-    0 0 20px #63c58c;
-}
-
-/* =========================
-   アクション
-========================= */
-
-.actionArea{
-  margin-top:12px;
-  display:flex;
-  justify-content:center;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-.action{
-  padding:11px 20px;
-  border-radius:10px;
-  border:1px solid #4d6548;
-  background:#182c1d;
-  color:#fff;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-.action.primary{
-  background:#806622;
-  border-color:#b59645;
-}
-
-.action.ron{
-  background:#662727;
-  border-color:#a74d4d;
-}
-
-.action:disabled{
-  opacity:.3;
-  cursor:not-allowed;
-}
-
-/* =========================
-   下情報
-========================= */
-
-.bottomInfo{
-  margin-top:12px;
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:10px;
-}
-
-.infoBox{
-  background:#0b1b11;
-  border:1px solid #354a37;
-  border-radius:11px;
-  padding:10px;
-}
-
-.infoTitle{
-  color:#aeb9ad;
-  font-size:11px;
-}
-
-.infoValue{
-  margin-top:4px;
-  color:#e8d27d;
-  font-size:17px;
-  font-weight:bold;
-}
-
-.waitTiles{
-  display:flex;
-  gap:5px;
-  flex-wrap:wrap;
-  margin-top:7px;
-}
-
-.wait{
-  padding:5px 8px;
-  background:#1a2d1e;
-  border:1px solid #456048;
-  border-radius:7px;
-  font-size:13px;
-}
-
-/* =========================
-   ログ
-========================= */
-
-.log{
-  max-height:270px;
-  overflow:auto;
-  color:#9da99f;
-  font-size:11px;
-  line-height:1.7;
-}
-
-.log div{
-  border-bottom:1px solid #1d3022;
-  padding:3px 0;
-}
-
-/* =========================
-   勝利演出
-========================= */
-
-#overlay{
-  display:none;
-  position:fixed;
-  inset:0;
-  z-index:100;
-  background:#000b;
-  align-items:center;
-  justify-content:center;
-}
-
-.winModal{
-  width:min(650px,92%);
-  padding:40px;
-  border-radius:25px;
-  text-align:center;
-  background:
-    radial-gradient(circle,#263d26,#0e1e13);
-  border:2px solid #c5a64f;
-  box-shadow:
-    0 0 70px #c9a84c55,
-    0 20px 80px #000;
-  animation:winIn .35s ease-out;
-}
-
-@keyframes winIn{
-  from{
-    transform:scale(.7);
-    opacity:0;
-  }
-  to{
-    transform:scale(1);
-    opacity:1;
-  }
-}
-
-.winMark{
-  font-size:64px;
-  color:#efd477;
-  font-weight:900;
-  text-shadow:0 0 25px #d7b54e88;
-}
-
-.winName{
-  font-size:25px;
-  margin:10px;
-}
-
-.winWords{
-  display:flex;
-  justify-content:center;
-  flex-wrap:wrap;
-  gap:8px;
-  margin:25px 0;
-}
-
-.winWord{
-  padding:10px 15px;
-  border-radius:9px;
-  background:#2d2613;
-  border:1px solid #a4873c;
-  color:#ffe99b;
-  font-size:20px;
-}
-
-.rematch{
-  padding:13px 35px;
-  border-radius:11px;
-  background:#866c25;
-  color:white;
-  border:1px solid #c5a64f;
-  cursor:pointer;
-  font-weight:bold;
-}
+:root{--bg:#08110d;--panel:#102018;--panel2:#172b20;--line:#365341;--gold:#e6c76a;--text:#f5f1df;--muted:#aeb9ad;--red:#df6b63;--green:#65c48b;--blue:#70a9dc}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#193526 0,#08110d 55%);color:var(--text);font-family:system-ui,-apple-system,"Yu Gothic",Meiryo,sans-serif;min-height:100vh}
+button,input,select{font:inherit}button{cursor:pointer;border:1px solid #55725d;background:#20382a;color:var(--text);border-radius:10px;padding:9px 13px}button:hover{filter:brightness(1.15)}button.primary{background:#8a6b20;border-color:#d8bd62;color:#fff9df}.danger{background:#512725;border-color:#8d4a45}.ghost{background:transparent}
+#app{max-width:1400px;margin:auto;padding:18px}.top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.title{font-size:28px;font-weight:900;letter-spacing:.08em}.badge{padding:5px 9px;border:1px solid var(--line);border-radius:999px;color:var(--gold);font-size:12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}.panel{background:linear-gradient(180deg,rgba(24,45,33,.96),rgba(11,25,18,.96));border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 35px #0007}
+#setup{padding:20px;margin-top:16px}.setup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.field label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}.field input,.field select{width:100%;background:#08140d;border:1px solid #405b49;color:var(--text);border-radius:10px;padding:10px}
+.help{color:var(--muted);line-height:1.7;font-size:13px;margin-top:14px}
+#game{display:none;margin-top:14px}.layout{display:grid;grid-template-columns:1fr 310px;gap:14px}.board{padding:14px;min-height:680px;position:relative}.side{padding:14px}.river{min-height:240px;border:1px dashed #48624e;border-radius:14px;padding:12px;background:#07110b}.river-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:var(--muted)}.river-grid{display:flex;flex-wrap:wrap;gap:7px;align-content:flex-start}.tile{width:45px;height:56px;border-radius:8px;border:1px solid #9e9b80;background:linear-gradient(#fffef0,#d9d4b7);color:#15150f;display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:900;user-select:none;box-shadow:0 3px 0 #7b795f}.tile.small{width:37px;height:45px;font-size:21px}.tile.selected{outline:3px solid var(--gold);transform:translateY(-4px)}.tile.hint{box-shadow:0 0 0 3px var(--green),0 0 22px #65c48b88}.tile.discard{width:38px;height:45px;font-size:21px}.turnbox{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:0 0 12px}.turn{font-weight:900}.turn.my{color:var(--gold)}.counts{display:flex;gap:8px;flex-wrap:wrap}.count{padding:5px 8px;border-radius:999px;background:#09150e;border:1px solid var(--line);font-size:12px}
+.melds{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}.meld{padding:7px 9px;border:1px solid #8b7a3c;border-radius:10px;background:#2a2513}.meld b{color:var(--gold)}
+.hand-wrap{margin-top:14px}.hand-title{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px}.hand{display:flex;gap:6px;flex-wrap:wrap;padding:12px 4px 6px;min-height:75px}.hand .tile{transition:.12s}.hand .tile[draggable=true]{cursor:grab}.hand .tile.dragging{opacity:.35}
+.progress{margin-top:8px;padding:10px;border-radius:10px;background:#09150e;border:1px solid var(--line);display:flex;gap:12px;flex-wrap:wrap}.progress strong{color:var(--gold)}.waits{margin-top:8px;padding:10px;border-radius:10px;background:#09150e;border:1px solid var(--line)}.wait-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.actions button:disabled{opacity:.35;cursor:not-allowed}
+.side h3{margin:8px 0 8px;font-size:14px;color:var(--gold)}.players{display:grid;gap:8px}.player{padding:10px;border:1px solid var(--line);border-radius:11px;background:#0b1911}.player.active{border-color:var(--gold);box-shadow:0 0 0 1px #e6c76a44}.player .name{font-weight:900}.mini{font-size:12px;color:var(--muted);margin-top:3px}.log{max-height:230px;overflow:auto;font-size:12px;line-height:1.55}.log div{padding:4px 0;border-bottom:1px solid #ffffff0b}.book{max-height:230px;overflow:auto;display:flex;gap:5px;flex-wrap:wrap}.wordchip{padding:4px 7px;border-radius:999px;background:#1a2b20;border:1px solid #35503d;font-size:12px}.mvp{font-size:13px;line-height:1.7}.subtle{color:var(--muted)}
+.overlay{position:fixed;inset:0;background:#020603cc;display:none;align-items:center;justify-content:center;z-index:20;padding:20px}.modal{width:min(720px,100%);padding:26px;text-align:center;background:linear-gradient(145deg,#182c20,#0b1710);border:1px solid #9f8542;border-radius:22px;box-shadow:0 25px 80px #000b}.win{font-size:58px;font-weight:1000;color:var(--gold);letter-spacing:.1em;text-shadow:0 0 25px #e6c76a88}.resultwords{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:16px 0}.resultwords span{padding:10px 13px;border:1px solid #756532;background:#282315;border-radius:10px;font-size:19px}.modal-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.board{min-height:auto}.side{order:2}}@media(max-width:600px){.tile{width:39px;height:50px;font-size:22px}.title{font-size:22px}}
 </style>
 </head>
-
 <body>
-
-<header>
-  <div class="logo">🀄 ひらがな麻雀</div>
-
-  <div class="headerRight">
-    <div class="headerBadge">3文字 × 4</div>
-    <div class="headerBadge">2文字 × 1</div>
-    <div class="headerBadge">2〜4人</div>
-  </div>
-</header>
-
-
-<!-- =========================
-     セットアップ
-========================= -->
-
-<section id="setup">
-
-  <div class="setupTitle">
-    <h1>ひらがな麻雀</h1>
-    <p>
-      3文字の言葉を4つ、2文字の言葉を1つ完成させろ。
-    </p>
+<div id="app">
+  <div class="top">
+    <div><span class="title">ひらがな麻雀</span> <span class="badge">更新版 / 2〜4人対応</span></div>
+    <div class="toolbar"><button id="newRoundBtn" class="primary" style="display:none">新しい局</button><button id="backBtn" class="ghost" style="display:none">設定へ戻る</button></div>
   </div>
 
-  <div class="setupGrid">
-
-    <div class="field">
-      <label>人数</label>
-      <select id="playerCount">
-        <option value="2">2人（テスト）</option>
-        <option value="3">3人</option>
-        <option value="4">4人</option>
-      </select>
+  <section id="setup" class="panel">
+    <h2 style="margin-top:0">対局設定</h2>
+    <div class="setup-grid">
+      <div class="field"><label>人数</label><select id="playerCount"><option value="2">2人（試作おすすめ）</option><option value="3">3人</option><option value="4">4人</option></select></div>
+      <div class="field"><label>プレイヤー名</label><input id="p1" value="プレイヤー1"></div>
+      <div class="field"><label>2人目の名前</label><input id="p2" value="プレイヤー2"></div>
+      <div class="field"><label>3人目の名前</label><input id="p3" value="プレイヤー3"></div>
+      <div class="field"><label>4人目の名前</label><input id="p4" value="プレイヤー4"></div>
     </div>
-
-    <div class="field">
-      <label>プレイヤー1</label>
-      <input id="name1" value="プレイヤー1">
+    <div class="help">
+      この試作版は<strong>同一ブラウザ上で2〜4人を切り替えて遊ぶテスト版</strong>です。<br>
+      最終版では同じ部屋に複数人が参加するオンライン対戦へ拡張する前提で、人数を2〜4人として扱えるようにしています。<br>
+      単語判定は<strong>登録語彙リストのみ</strong>を使用。登録されていない文字列は単語として成立しません。
     </div>
+    <button id="startBtn" class="primary" style="margin-top:15px;font-size:17px">対局開始</button>
+  </section>
 
-    <div class="field">
-      <label>プレイヤー2</label>
-      <input id="name2" value="プレイヤー2">
-    </div>
-
-    <div class="field" id="name3box">
-      <label>プレイヤー3</label>
-      <input id="name3" value="プレイヤー3">
-    </div>
-
-    <div class="field" id="name4box">
-      <label>プレイヤー4</label>
-      <input id="name4" value="プレイヤー4">
-    </div>
-
-  </div>
-
-  <button class="startButton" id="start">
-    対局開始
-  </button>
-
-</section>
-
-
-<!-- =========================
-     ゲーム
-========================= -->
-
-<section id="game">
-
-<div class="gameLayout">
-
-  <!-- 左サイド -->
-
-  <aside class="sidePanel">
-
-    <div class="sideTitle">👥 プレイヤー</div>
-
-    <div id="players"></div>
-
-    <div class="sideTitle" style="margin-top:22px">
-      📚 通算単語帳
-    </div>
-
-    <div id="book" class="wordBook"></div>
-
-  </aside>
-
-
-  <!-- 中央 -->
-
-  <main>
-
-    <div class="table">
-
-      <!-- 上家 -->
-
-      <div class="opponent top" id="opponentTop">
-        <div class="opponentName">---</div>
-        <div class="opponentInfo">手牌：？？枚</div>
-      </div>
-
-      <!-- 左家 -->
-
-      <div class="opponent left" id="opponentLeft">
-        <div class="opponentName">---</div>
-        <div class="opponentInfo">手牌：？？枚</div>
-      </div>
-
-      <!-- 右家 -->
-
-      <div class="opponent right" id="opponentRight">
-        <div class="opponentName">---</div>
-        <div class="opponentInfo">手牌：？？枚</div>
-      </div>
-
-
-      <!-- 中央 -->
-
-      <div class="centerTable">
-
-        <div class="turnText">
-          手番：<span id="turn">---</span>
+  <section id="game">
+    <div class="layout">
+      <main class="board panel">
+        <div class="turnbox">
+          <div>手番：<span id="turnName" class="turn my"></span></div>
+          <div class="counts"><span class="count">山 <b id="deckCount">0</b></span><span class="count">局勝利 <b id="roundWins">0</b></span></div>
         </div>
 
-        <div class="deckText">
-          山牌残り <b id="deckCount">0</b> 枚
+        <div class="river">
+          <div class="river-title"><span>🀄 捨て牌</span><span class="subtle">全員公開</span></div>
+          <div id="riverGrid" class="river-grid"></div>
         </div>
 
-        <div class="progress" id="progress"></div>
+        <div id="melds" class="melds"></div>
 
-      </div>
-
-
-      <!-- 捨て牌 -->
-
-      <div class="riverArea">
-
-        <div class="riverTitle">
-          ―― 捨て牌 ――
+        <div class="progress">
+          <span>3文字：<strong id="threeCount">0 / 4</strong></span>
+          <span>2文字：<strong id="pairCount">0 / 1</strong></span>
+          <span>あと：<strong id="remainCount">5個</strong></span>
         </div>
 
-        <div id="river" class="river"></div>
+        <div class="waits">
+          <div><b>🎯 テンパイ・待ち</b> <span class="subtle">（自分だけ表示）</span></div>
+          <div id="waitsList" class="wait-list"></div>
+        </div>
 
-      </div>
+        <div class="hand-wrap">
+          <div class="hand-title"><span id="handTitle"></span><span>ドラッグで並び替え可能</span></div>
+          <div id="hand" class="hand"></div>
+        </div>
 
+        <div class="actions">
+          <button id="drawBtn" class="primary">ツモる</button>
+          <button id="ronBtn">ロン！</button>
+          <button id="tsumoBtn">ツモ！</button>
+          <button id="chiBtn">チー候補</button>
+          <button id="discardBtn">選択牌を捨てる</button>
+        </div>
+        <div id="actionHelp" class="help"></div>
+      </main>
 
-      <!-- 鳴き -->
-
-      <div class="meldArea" id="meldArea"></div>
-
+      <aside class="side panel">
+        <h3>👥 参加者</h3><div id="players" class="players"></div>
+        <h3>📖 今回の単語帳</h3><div id="book" class="book"></div>
+        <h3>🏅 対局記録</h3><div id="mvp" class="mvp"></div>
+        <h3>📜 ログ</h3><div id="log" class="log"></div>
+      </aside>
     </div>
-
-
-    <!-- 手牌 -->
-
-    <div class="handArea">
-
-      <div class="handHeader">
-
-        <span>
-          🀄 あなたの手牌
-        </span>
-
-        <span>
-          ドラッグで並び替え可能
-        </span>
-
-      </div>
-
-      <div id="hand" class="hand"></div>
-
-    </div>
-
-
-    <!-- ボタン -->
-
-    <div class="actionArea">
-
-      <button class="action primary" id="draw">
-        ツモる
-      </button>
-
-      <button class="action" id="discard">
-        牌を捨てる
-      </button>
-
-      <button class="action" id="chi">
-        チー
-      </button>
-
-      <button class="action ron" id="ron">
-        ロン！
-      </button>
-
-      <button class="action primary" id="tsumo">
-        ツモ！
-      </button>
-
-    </div>
-
-
-    <!-- 情報 -->
-
-    <div class="bottomInfo">
-
-      <div class="infoBox">
-
-        <div class="infoTitle">
-          あと何個？
-        </div>
-
-        <div class="infoValue" id="remain">
-          -
-        </div>
-
-      </div>
-
-
-      <div class="infoBox">
-
-        <div class="infoTitle">
-          🎯 待ち牌
-        </div>
-
-        <div id="waits" class="waitTiles"></div>
-
-      </div>
-
-
-      <div class="infoBox">
-
-        <div class="infoTitle">
-          📖 今回の単語
-        </div>
-
-        <div id="roundWords" class="wordBook"></div>
-
-      </div>
-
-    </div>
-
-  </main>
-
-
-  <!-- 右サイド -->
-
-  <aside class="sidePanel">
-
-    <div class="sideTitle">
-      📜 対局ログ
-    </div>
-
-    <div id="log" class="log"></div>
-
-  </aside>
-
+  </section>
 </div>
 
-</section>
-
-
-<!-- =========================
-     勝利
-========================= -->
-
-<div id="overlay">
-
-  <div class="winModal">
-
-    <div class="winMark" id="winType">
-      和了！
-    </div>
-
-    <div class="winName" id="winner">
-      ---
-    </div>
-
-    <div class="winWords" id="winWords"></div>
-
-    <button class="rematch" id="rematch">
-      同じ部屋で再戦
-    </button>
-
+<div id="overlay" class="overlay">
+  <div class="modal">
+    <div class="win" id="winText">WIN!</div>
+    <div id="winSub"></div>
+    <div class="resultwords" id="resultWords"></div>
+    <div class="modal-actions"><button id="rematchBtn" class="primary">同じ部屋で再戦</button><button id="closeOverlayBtn">閉じる</button></div>
   </div>
-
 </div>
-
 
 <script>
-
-/* =========================================================
-   登録語彙
-   ※正式版では検証済み語彙データへ分離予定
-========================================================= */
-
+/* 単語判定用の登録語彙。
+   広辞苑本文そのものは転載せず、確認した語だけをこのリストへ登録する方式。
+   ゲームはこのリストに存在する語だけを有効語として扱います。 */
 const WORDS = new Set(`
-
-あい あお あき あさ あし あじ あす あせ あと
-あな あめ あゆ
-
-いえ いか いき いけ いし いす いぬ いま いろ
-
-うえ うし うそ うた うみ
-
-えき えさ
-
-おい おか おき おと おに おや
-
-かお かき かぎ かさ かぜ かた かに かね かみ
-かめ から
-
-きく きの きみ きり
-
-くさ くち くつ くに くま くも
-
-けし
-
-こえ こめ ころ
-
-さけ さき さく さと さば さめ さら
-
-しお しか しき しし した しも
-
-すい すし すな
-
-せき せみ
-
-そら
-
-たい たこ たね たに たま
-
-ちえ ちず ちち
-
-つき つく つち つの
-
-てら
-
-とき とけ とり
-
-なつ なみ
-
-にく にし にわ
-
-ぬの
-
-ねこ
-
-のり
-
-はこ はし はな はね はる
-
-ひと ひる
-
-ふね
-
-へや
-
-ほし ほん
-
-まえ まめ まる みず みせ みち みみ
-
-むし むね
-
-めし
-
-もり
-
-やま ゆき
-
-よる
-
-らく
-
-りす りん
-
-れき れん
-
-わに わら
-
-
-あさひ あかり あきら あなた あゆみ
-いかだ いかり いきもの いちご いなか いのち
-うさぎ うしろ うみべ えがお
-おかし おしろ おすし おとこ おんな
-かがみ かたち かなた からす かわら
-きつね きのこ
-くじら くすり くもり けむり
-こいぬ こいびと こおり こたえ ことば こども
-さかな さくら さとう
-しずく しごと すいか すずめ せかい
-たぬき たまご ちから つばさ つぼみ
-てがみ てまり とかげ とまと ともだち
-ながれ なつやすみ にじいろ にんじん
-ねずみ のはら はさみ はたけ はなび
-ひかり ひつじ ふくろ ほたる
-まくら まつり みかん みずうみ
-むかし めがね もみじ
-やさい やかた ゆめ ゆめみ
-りんご わたし わたげ
-
+あい あお あき あさ あし あじ あす あせ あと あな あめ あゆ いえ いか いき いけ いし いす いぬ いま いろ うえ うし うそ うた うみ えき えさ おい おか おき おと おに おや かお かき かぎ かさ かぜ かた かに かね かみ かめ から きく きの きみ きも きり くさ くち くつ くに くま くも けし けむ こえ こお こめ ころ さけ さき さく さと さば さめ さら しお しか しき しし した しに しも すい すし すな せき せみ そら たい たこ たね たに たま ちえ ちず ちち つき つく つち つの てら とき とけ とり なつ なみ にく にし にわ ぬの ねこ のり はこ はし はな はね はる ひえ ひと ひる ふね へや ほし ほん まえ まめ まる みず みせ みち みみ むし むね めし もり やま ゆき よる らく りす りん れき れん わに わら
+あさひ あかり あきら あなた あめり あゆみ いかだ いかり いきもの いしだ いちご いちじ いなか いのち いぬや うさぎ うしろ うみべ えがお おかし おさけ おしろ おすし おそら おとこ おんな かがみ かさね かたち かなた かにく かみなり からす かわら きつね きのこ きもの くじら くすり くもり けむり こいぬ こいびと こおり こたえ ことば こども さかな さくら さとう しずく しごと ししまい しずか すいか すずめ せかい せなか そよかぜ たぬき たまご ちから つばさ つぼみ てがみ てまり とかげ とまと ともだち ながれ なつやすみ にじいろ にんじん ねずみ のはら はさみ はたけ はなび ひかり ひつじ ふくろ ほたる まくら まつり みかん みずうみ むかし めがね もみじ やさい やかた ゆめみ ゆらゆら ようふく りんご わたし わたげ
 `.trim().split(/\s+/));
 
-
-/* =========================================================
-   牌
-========================================================= */
-
-const BASIC = [
-..."あいうえお",
-..."かきくけこ",
-..."さしすせそ",
-..."たちつてと",
-..."なにぬねの",
-..."はひふへほ",
-..."まみむめも",
-..."やゆよ",
-..."らりるれろ",
-..."わをん"
-];
-
-const EXTRA = [
-..."がぎぐげござじずぜぞ",
-..."だぢづでど",
-..."ばびぶべぼ",
-..."ぱぴぷぺぽ",
-..."ゃゅょっ"
-];
-
-const TILE_TYPES =
-  [...new Set([...BASIC,...EXTRA])];
-
-
-/* =========================================================
-   状態
-========================================================= */
-
-let players=[];
-let hands=[];
-let melds=[];
-let wins=[];
-let stats=[];
-let books=[];
-let deck=[];
-let river=[];
-let turn=0;
-let selected=-1;
-let dragIndex=null;
-
-let gameOver=false;
-
-let pendingRon=null;
-let pendingChi=null;
-
-
-/* =========================================================
-   ユーティリティ
-========================================================= */
-
-function shuffle(arr){
-
-  for(let i=arr.length-1;i>0;i--){
-
-    const j=Math.floor(Math.random()*(i+1));
-
-    [arr[i],arr[j]]=
-      [arr[j],arr[i]];
-
-  }
-
-  return arr;
-}
-
-
-function log(text){
-
-  const box=
-    document.getElementById("log");
-
-  const div=
-    document.createElement("div");
-
-  div.textContent=text;
-
-  box.prepend(div);
-}
-
-
-function combinations(arr,n){
-
-  const result=[];
-
-  function rec(start,picked){
-
-    if(picked.length===n){
-
-      result.push([...picked]);
-      return;
-
-    }
-
-    for(
-      let i=start;
-      i<=arr.length-(n-picked.length);
-      i++
-    ){
-
-      picked.push(i);
-
-      rec(i+1,picked);
-
-      picked.pop();
-
-    }
-
-  }
-
-  rec(0,[]);
-
-  return result;
-}
-
-
-function possibleWords(tiles,length){
-
-  const result=[];
-
-  for(const ids of combinations(tiles,length)){
-
-    const word=
-      ids.map(i=>tiles[i]).join("");
-
-    if(WORDS.has(word)){
-
-      result.push({
-        word,
-        ids
-      });
-
-    }
-
-  }
-
-  return result;
-}
-
-
-/* =========================================================
-   和了判定
-========================================================= */
-
-function solve14(tiles){
-
-  if(tiles.length!==14)
-    return null;
-
-  const pairs=
-    possibleWords(tiles,2);
-
-  for(const pair of pairs){
-
-    const rest1=
-      tiles.filter(
-        (_,i)=>!pair.ids.includes(i)
-      );
-
-    const aList=
-      possibleWords(rest1,3);
-
-    for(const a of aList){
-
-      const rest2=
-        rest1.filter(
-          (_,i)=>!a.ids.includes(i)
-        );
-
-      const bList=
-        possibleWords(rest2,3);
-
-      for(const b of bList){
-
-        const rest3=
-          rest2.filter(
-            (_,i)=>!b.ids.includes(i)
-          );
-
-        const cList=
-          possibleWords(rest3,3);
-
-        for(const c of cList){
-
-          const rest4=
-            rest3.filter(
-              (_,i)=>!c.ids.includes(i)
-            );
-
-          const dList=
-            possibleWords(rest4,3);
-
-          if(dList.length){
-
-            return {
-              pair:pair.word,
-              words:[
-                a.word,
-                b.word,
-                c.word,
-                dList[0].word
-              ]
-            };
-
-          }
-
+const KANA = [...'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'];
+const VOICED = [...'がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽゃゅょっぁぃぅぇぉ'];
+const TILE_CHARS = [...new Set([...KANA,...VOICED])];
+
+const state = {
+  started:false, players:[], current:0, deck:[], river:[], lastDiscard:null,
+  wins:[], stats:[], hands:[], melds:[], books:[], selected:-1, roundBook:new Set(),
+  dragged:null, roundOver:false, actionCount:0
+};
+
+const $ = id => document.getElementById(id);
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+function log(s){ const d=document.createElement('div'); d.textContent=s; $('log').prepend(d); }
+function normalize(s){return s.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));}
+function isWord(s){return WORDS.has(normalize(s));}
+function charCount(s){const m=new Map(); for(const c of s)m.set(c,(m.get(c)||0)+1);return m;}
+function sameMultiset(a,b){if(a.length!==b.length)return false;const x=charCount(a),y=charCount(b);if(x.size!==y.size)return false;for(const [k,v] of x)if(y.get(k)!==v)return false;return true;}
+function combos(arr,n,start=0,prefix=[],out=[]){if(prefix.length===n){out.push([...prefix]);return out}for(let i=start;i<=arr.length-(n-prefix.length);i++){prefix.push(i);combos(arr,n,i+1,prefix,out);prefix.pop()}return out}
+function wordsFromTiles(tiles,len){const out=[];const inds=combos(tiles,len);for(const ix of inds){const s=ix.map(i=>tiles[i]).join('');if(isWord(s))out.push({word:s,indices:ix})}return out}
+function findPartition(tiles){
+  if(tiles.length!==14)return null;
+  const tw=wordsFromTiles(tiles,2), th=wordsFromTiles(tiles,3);
+  for(const p of tw){
+    const rem=tiles.filter((_,i)=>!p.indices.includes(i));
+    const a=wordsFromTiles(rem,3);
+    for(const w1 of a){
+      const rem1=rem.filter((_,i)=>!w1.indices.includes(i));
+      const b=wordsFromTiles(rem1,3);
+      for(const w2 of b){
+        const rem2=rem1.filter((_,i)=>!w2.indices.includes(i));
+        const c=wordsFromTiles(rem2,3);
+        for(const w3 of c){
+          const rem3=rem2.filter((_,i)=>!w3.indices.includes(i));
+          const d=wordsFromTiles(rem3,3);
+          if(d.length)return {pair:p.word,words:[w1.word,w2.word,w3.word,d[0].word]};
         }
-
       }
-
     }
-
   }
-
   return null;
 }
-
-
-function completedWords(tiles){
-
-  return [
-    ...new Set(
-      possibleWords(tiles,3)
-        .map(x=>x.word)
-    )
-  ];
-
+function completedWords(hand){
+  const found=[]; const seen=new Set();
+  for(const w of wordsFromTiles(hand,3)){if(!seen.has(w.word)){seen.add(w.word);found.push(w.word)}}
+  return found;
 }
-
-
-function waitsFor(tiles){
-
-  if(tiles.length!==13)
-    return [];
-
-  const result=[];
-
-  for(const c of TILE_TYPES){
-
-    if(
-      solve14(
-        [...tiles,c]
-      )
-    ){
-
-      result.push(c);
-
-    }
-
-  }
-
-  return result;
+function waits(hand){
+  if(hand.length!==13)return [];
+  const out=[]; for(const c of TILE_CHARS){const p=findPartition([...hand,c]);if(p)out.push(c)}
+  return out;
 }
-
-
-/* =========================================================
-   山
-========================================================= */
-
 function makeDeck(){
-
-  const result=[];
-
-  for(const c of TILE_TYPES){
-
-    for(let i=0;i<4;i++){
-
-      result.push(c);
-
-    }
-
-  }
-
-  return shuffle(result);
+  const d=[]; for(const c of TILE_CHARS)for(let i=0;i<4;i++)d.push(c); return shuffle(d);
 }
-
-
-/* =========================================================
-   プレイヤー人数変更
-========================================================= */
-
-document
-.getElementById("playerCount")
-.addEventListener("change",function(){
-
-  const n=
-    Number(this.value);
-
-  document
-    .getElementById("name3box")
-    .style.display=
-      n>=3 ? "block":"none";
-
-  document
-    .getElementById("name4box")
-    .style.display=
-      n>=4 ? "block":"none";
-
-});
-
-
-/* =========================================================
-   ゲーム開始
-========================================================= */
-
-document
-.getElementById("start")
-.addEventListener("click",startGame);
-
-
-function startGame(){
-
-  const n=
-    Number(
-      document
-        .getElementById("playerCount")
-        .value
-    );
-
-  players=[];
-
-  for(let i=1;i<=n;i++){
-
-    players.push({
-
-      name:
-        document
-          .getElementById("name"+i)
-          .value
-          .trim()
-          ||
-          "プレイヤー"+i
-
-    });
-
-  }
-
-  wins=
-    Array(n).fill(0);
-
-  stats=
-    Array.from(
-      {length:n},
-      ()=>({
-        ron:0,
-        tsumo:0,
-        chi:0
-      })
-    );
-
-  books=
-    Array.from(
-      {length:n},
-      ()=>new Set()
-    );
-
-  document
-    .getElementById("setup")
-    .style.display="none";
-
-  document
-    .getElementById("game")
-    .style.display="block";
-
-  newRound();
-
+function setupState(){
+  const n=+$('playerCount').value;
+  state.players=Array.from({length:n},(_,i)=>({name:$('p'+(i+1)).value.trim()||`プレイヤー${i+1}`}));
+  state.wins=Array(n).fill(0); state.stats=Array.from({length:n},()=>({ron:0,tsumo:0,chi:0}));
+  state.books=Array.from({length:n},()=>new Set()); state.started=true; startRound(true);
 }
-
-
-/* =========================================================
-   新しい局
-========================================================= */
-
-function newRound(){
-
-  deck=
-    makeDeck();
-
-  river=[];
-
-  melds=
-    Array.from(
-      {length:players.length},
-      ()=>[]
-    );
-
-  hands=
-    Array.from(
-      {length:players.length},
-      ()=>[]
-    );
-
-  turn=0;
-
-  selected=-1;
-
-  gameOver=false;
-
-  pendingRon=null;
-  pendingChi=null;
-
-  /*
-    最初は全員13枚
-  */
-
-  for(let i=0;i<13;i++){
-
-    for(let p=0;p<players.length;p++){
-
-      hands[p].push(
-        deck.pop()
-      );
-
-    }
-
-  }
-
-  document
-    .getElementById("overlay")
-    .style.display="none";
-
-  document
-    .getElementById("log")
-    .innerHTML="";
-
-  log("新しい局が始まった。");
-
+function startRound(first=false){
+  state.deck=makeDeck(); state.river=[]; state.lastDiscard=null; state.current=0; state.selected=-1; state.roundOver=false; state.roundBook=new Set(); state.melds=Array.from({length:state.players.length},()=>[]);
+  state.hands=Array.from({length:state.players.length},()=>[]);
+  for(let r=0;r<13;r++)for(let p=0;p<state.players.length;p++)state.hands[p].push(state.deck.pop());
+  state.hands=state.hands.map(h=>h);
+  if(first) $('setup').style.display='none';
+  $('game').style.display='block'; $('backBtn').style.display='inline-block'; $('newRoundBtn').style.display='inline-block'; $('log').innerHTML='';
+  log(`対局開始：${state.players.length}人`);
   render();
-
 }
-
-
-/* =========================================================
-   ツモ
-========================================================= */
-
-document
-.getElementById("draw")
-.addEventListener("click",()=>{
-
-  if(gameOver)
-    return;
-
-  if(turn!==0){
-
-    log("今は相手の手番。");
-
-    return;
-
-  }
-
-  if(hands[0].length>=14){
-
-    log("先に牌を捨てよう。");
-
-    return;
-
-  }
-
-  if(deck.length===0){
-
-    log("山牌がなくなった。");
-
-    return;
-
-  }
-
-  hands[0].push(
-    deck.pop()
-  );
-
-  selected=-1;
-
-  render();
-
-  const result=
-    solve14(hands[0]);
-
-  if(result){
-
-    showWin(
-      0,
-      result,
-      "ツモ"
-    );
-
-  }
-
-});
-
-
-/* =========================================================
-   捨てる
-========================================================= */
-
-document
-.getElementById("discard")
-.addEventListener("click",()=>{
-
-  if(
-    gameOver ||
-    turn!==0
-  )
-    return;
-
-  if(hands[0].length!==14){
-
-    log("14枚になるまでツモってね。");
-
-    return;
-
-  }
-
-  if(selected<0){
-
-    log("捨てる牌を選んでね。");
-
-    return;
-
-  }
-
-  const char=
-    hands[0].splice(
-      selected,
-      1
-    )[0];
-
-  selected=-1;
-
-  river.push({
-
-    player:0,
-    char
-
-  });
-
-  log(
-    players[0].name+
-    " が「"+
-    char+
-    "」を捨てた"
-  );
-
-  checkDiscard(
-    char,
-    0
-  );
-
-});
-
-
-/* =========================================================
-   ロン
-========================================================= */
-
-document
-.getElementById("ron")
-.addEventListener("click",()=>{
-
-  if(!pendingRon)
-    return;
-
-  const data=
-    pendingRon;
-
-  pendingRon=null;
-
-  stats[0].ron++;
-
-  showWin(
-    0,
-    data.result,
-    "ロン！"
-  );
-
-});
-
-
-/* =========================================================
-   ツモ和了
-========================================================= */
-
-document
-.getElementById("tsumo")
-.addEventListener("click",()=>{
-
-  if(
-    gameOver ||
-    turn!==0
-  )
-    return;
-
-  const result=
-    solve14(hands[0]);
-
-  if(!result)
-    return;
-
-  stats[0].tsumo++;
-
-  showWin(
-    0,
-    result,
-    "ツモ！"
-  );
-
-});
-
-
-/* =========================================================
-   チー
-========================================================= */
-
-document
-.getElementById("chi")
-.addEventListener("click",()=>{
-
-  if(!pendingChi)
-    return;
-
-  const data=
-    pendingChi;
-
-  if(!data.choices.length)
-    return;
-
-  /*
-    現段階では最初の候補を採用。
-    後で候補選択UIを追加する。
-  */
-
-  const choice=
-    data.choices[0];
-
-  const discardIndex=
-    hands[0].length;
-
-  const ownIndexes=
-    choice.ids.filter(
-      i=>i!==discardIndex
-    );
-
-  hands[0]=
-    hands[0].filter(
-      (_,i)=>!ownIndexes.includes(i)
-    );
-
-  melds[0].push(
-    choice.word
-  );
-
-  stats[0].chi++;
-
-  books[0].add(
-    choice.word
-  );
-
-  pendingChi=null;
-
-  log(
-    "🀄 チー！ "+
-    choice.word
-  );
-
-  render();
-
-});
-
-
-/* =========================================================
-   捨て牌処理
-========================================================= */
-
-function checkDiscard(char,discarder){
-
-  pendingRon=null;
-  pendingChi=null;
-
-  /*
-    ロン
-  */
-
-  if(discarder!==0){
-
-    const result=
-      solve14(
-        [...hands[0],char]
-      );
-
-    if(result){
-
-      pendingRon={
-        result,
-        char
-      };
-
-      log(
-        "🔥 「"+
-        char+
-        "」でロンできる！"
-      );
-
-      render();
-
-      return;
-
+function currentPlayer(){return state.current}
+function playerCanWin(p){
+  return findPartition(state.hands[p]);
+}
+function draw(){
+  if(state.roundOver)return;
+  if(state.current!==0){ aiTurn(); return; }
+  if(state.deck.length===0){log('山がなくなったため流局。'); nextTurn();return}
+  state.hands[0].push(state.deck.pop()); state.selected=-1; state.actionCount++;
+  const p=findPartition(state.hands[0]); if(p){render(); showWin(0,p,'ツモ');return}
+  log('自分が1枚ツモ。'); render();
+}
+function discard(){
+  if(state.roundOver||state.current!==0)return;
+  if(state.hands[0].length!==14){log('まずツモってください。');return}
+  if(state.selected<0){log('捨てる牌を選んでください。');return}
+  const c=state.hands[0].splice(state.selected,1)[0]; state.selected=-1; state.river.push({player:0,char:c}); state.lastDiscard={player:0,char:c}; log(`${state.players[0].name}：${c} を捨てた`);
+  checkRonOrChi(0,c);
+}
+function checkRonOrChi(discarder,c){
+  // 試作では全員のロンを先に確認。人間側が宣言する前に、AIは自動判定。
+  for(let p=0;p<state.players.length;p++){
+    if(p===discarder)continue;
+    const h=state.hands[p]; const candidate=[...h,c];
+    const win=findPartition(candidate);
+    if(win){
+      if(p===0){render(); $('ronBtn').disabled=false; log(`🀄 ${c} でロンできます！`); state.pendingRon={p,c,win}; return}
+      showWin(p,win,'ロン'); return;
     }
-
   }
-
-  /*
-    チー
-  */
-
-  if(discarder!==0){
-
-    const all=[
-      ...hands[0],
-      char
-    ];
-
-    const choices=
-      possibleWords(all,3)
-      .filter(x=>
-        x.ids.includes(
-          hands[0].length
-        )
-      );
-
-    if(choices.length){
-
-      pendingChi={
-        char,
-        choices
-      };
-
-      log(
-        "🀄 チー候補："+
-        choices
-          .map(x=>x.word)
-          .join(" / ")
-      );
-
-      render();
-
-      return;
-
-    }
-
+  if(discarder===0){
+    const chi=wordsFromTiles([...state.hands[0],c],3).filter(x=>x.indices.includes(state.hands[0].length));
+    if(chi.length){state.pendingChi={p:0,c,choices:chi}; log(`チー候補：${chi.map(x=>x.word).join(' / ')}`)}
   }
-
   nextTurn();
-
 }
-
-
-/* =========================================================
-   次の手番
-========================================================= */
-
+function doRon(){
+  if(!state.pendingRon)return;
+  const x=state.pendingRon; state.pendingRon=null; state.stats[x.p].ron++; showWin(x.p,x.win,'ロン');
+}
+function doChi(){
+  if(!state.pendingChi)return;
+  const x=state.pendingChi; const choice=x.choices[0]; const all=[...state.hands[0],x.c];
+  const used=new Set(choice.indices.filter(i=>i<state.hands[0].length));
+  const own=[...used].map(i=>state.hands[0][i]).join('');
+  const discard=x.c;
+  state.hands[0]=state.hands[0].filter((_,i)=>!used.has(i));
+  state.melds[0].push(choice.word); state.stats[0].chi++; state.roundBook.add(choice.word); state.books[0].add(choice.word);
+  state.pendingChi=null; state.lastDiscard=null; log(`🀄 チー！「${choice.word}」`);
+  // 鳴いた後は自分の番として1枚捨てる
+  state.current=0; state.hands[0].push(state.deck.pop()||'あ'); render();
+}
 function nextTurn(){
-
-  if(gameOver)
-    return;
-
-  turn=
-    (turn+1)
-    %
-    players.length;
-
+  if(state.roundOver)return;
+  state.current=(state.current+1)%state.players.length;
   render();
-
-  if(turn!==0){
-
-    setTimeout(
-      aiTurn,
-      650
-    );
-
-  }
-
+  if(state.current!==0) setTimeout(aiTurn,500);
 }
-
-
-/* =========================================================
-   AI
-========================================================= */
-
 function aiTurn(){
-
-  if(gameOver)
-    return;
-
-  const p=turn;
-
-  if(deck.length===0){
-
-    log("山牌がなくなった。");
-
-    return;
-
-  }
-
-  hands[p].push(
-    deck.pop()
-  );
-
-  const result=
-    solve14(
-      hands[p]
-    );
-
-  if(result){
-
-    stats[p].tsumo++;
-
-    showWin(
-      p,
-      result,
-      "ツモ！"
-    );
-
-    return;
-
-  }
-
-  /*
-    できるだけ単語候補を
-    残す牌を捨てる
-  */
-
-  let bestIndex=0;
-  let bestScore=-1;
-
-  for(
-    let i=0;
-    i<hands[p].length;
-    i++
-  ){
-
-    const test=
-      hands[p].filter(
-        (_,j)=>j!==i
-      );
-
-    const score=
-      completedWords(test).length;
-
-    if(score>bestScore){
-
-      bestScore=score;
-      bestIndex=i;
-
-    }
-
-  }
-
-  const char=
-    hands[p].splice(
-      bestIndex,
-      1
-    )[0];
-
-  river.push({
-    player:p,
-    char
-  });
-
-  log(
-    players[p].name+
-    " が「"+
-    char+
-    "」を捨てた"
-  );
-
-  /*
-    人間のロン判定
-  */
-
-  const humanResult=
-    solve14(
-      [...hands[0],char]
-    );
-
-  if(humanResult){
-
-    pendingRon={
-      result:humanResult,
-      char
-    };
-
-    log(
-      "🔥 「"+
-      char+
-      "」でロンできる！"
-    );
-
-    render();
-
-    return;
-
-  }
-
+  if(state.roundOver)return;
+  const p=state.current; if(p===0)return;
+  if(state.deck.length===0){log('山がなくなったため流局。');return}
+  state.hands[p].push(state.deck.pop());
+  const win=findPartition(state.hands[p]); if(win){showWin(p,win,'ツモ');return}
+  const candidates=state.hands[p].map((c,i)=>({c,i,score:completedWords(state.hands[p].filter((_,j)=>j!==i)).length}));
+  candidates.sort((a,b)=>b.score-a.score);
+  const chosen=candidates[candidates.length-1];
+  const c=state.hands[p].splice(chosen.i,1)[0];
+  state.river.push({player:p,char:c}); state.lastDiscard={player:p,char:c}; log(`${state.players[p].name}：${c} を捨てた`);
+  // human player 0 can ron
+  const candidate=[...state.hands[0],c], win0=findPartition(candidate);
+  if(win0){state.pendingRon={p:0,c,win:win0};render();log(`🔥 ${c} でロンできます！`);return}
+  // simple AI chi if it can form a word with the discard; otherwise next
+  const chi=wordsFromTiles([...state.hands[p],c],3).filter(x=>x.indices.includes(state.hands[p].length));
+  if(chi.length){const choice=chi[0]; const used=new Set(choice.indices.filter(i=>i<state.hands[p].length)); state.hands[p]=state.hands[p].filter((_,i)=>!used.has(i));state.melds[p].push(choice.word);state.stats[p].chi++;state.books[p].add(choice.word);log(`${state.players[p].name}：チー「${choice.word}」`);state.hands[p].push(state.deck.pop()||'あ')}
   nextTurn();
-
 }
-
-
-/* =========================================================
-   和了
-========================================================= */
-
-function showWin(
-  player,
-  result,
-  type
-){
-
-  gameOver=true;
-
-  wins[player]++;
-
-  const words=[
-    ...result.words,
-    result.pair
-  ];
-
-  words.forEach(w=>
-    books[player].add(w)
-  );
-
-  document
-    .getElementById("winType")
-    .textContent=
-      type;
-
-  document
-    .getElementById("winner")
-    .textContent=
-      players[player].name+
-      " の和了！";
-
-  document
-    .getElementById("winWords")
-    .innerHTML=
-      words
-        .map(w=>
-          `<span class="winWord">${w}</span>`
-        )
-        .join("");
-
-  document
-    .getElementById("overlay")
-    .style.display="flex";
-
-  render();
-
+function showWin(p,part,kind){
+  state.roundOver=true; state.wins[p]++; if(kind==='ツモ')state.stats[p].tsumo++;
+  const words=[...part.words,part.pair]; words.forEach(w=>{state.books[p].add(w);state.roundBook.add(w)});
+  $('winText').textContent=kind+'！';
+  $('winSub').innerHTML=`<b>${state.players[p].name}</b> の和了`;
+  $('resultWords').innerHTML=words.map(w=>`<span>${w}</span>`).join('');
+  $('overlay').style.display='flex'; render();
 }
-
-
-/* =========================================================
-   再戦
-========================================================= */
-
-document
-.getElementById("rematch")
-.addEventListener(
-  "click",
-  newRound
-);
-
-
-/* =========================================================
-   描画
-========================================================= */
-
+function rematch(){ $('overlay').style.display='none'; startRound(); }
 function render(){
-
-  if(!players.length)
-    return;
-
-
-  /* 手番 */
-
-  document
-    .getElementById("turn")
-    .textContent=
-      players[turn].name;
-
-
-  /* 山 */
-
-  document
-    .getElementById("deckCount")
-    .textContent=
-      deck.length;
-
-
-  /* 捨て牌 */
-
-  document
-    .getElementById("river")
-    .innerHTML=
-      river
-        .map(x=>
-          `<div
-            class="discardTile"
-            title="${players[x.player].name}"
-          >${x.char}</div>`
-        )
-        .join("");
-
-
-  /* 進行 */
-
-  const words=
-    completedWords(
-      hands[0]
-    );
-
-  const pair=
-    possibleWords(
-      hands[0],
-      2
-    );
-
-  const progress=
-    document
-      .getElementById("progress");
-
-  progress.innerHTML="";
-
-  for(let i=0;i<5;i++){
-
-    const box=
-      document.createElement("div");
-
-    box.className=
-      "progressBox";
-
-    if(
-      i<Math.min(
-        words.length,
-        4
-      )
-    ){
-
-      box.classList.add("done");
-      box.textContent="3";
-
-    }
-    else if(
-      i===4 &&
-      pair.length
-    ){
-
-      box.classList.add("done");
-      box.textContent="2";
-
-    }
-    else{
-
-      box.textContent=
-        i===4
-          ? "2"
-          : "3";
-
-    }
-
-    progress.appendChild(box);
-
-  }
-
-
-  /* 手牌 */
-
-  const hand=
-    document.getElementById("hand");
-
-  hand.innerHTML="";
-
-  /*
-    3文字候補に含まれる牌を
-    光らせる
-  */
-
-  const candidates=
-    new Set();
-
-  for(
-    const x of
-    possibleWords(
-      hands[0],
-      3
-    )
-  ){
-
-    x.ids.forEach(i=>
-      candidates.add(i)
-    );
-
-  }
-
-  hands[0].forEach(
-    (char,i)=>{
-
-      const tile=
-        document.createElement("div");
-
-      tile.className="tile";
-
-      tile.textContent=char;
-
-      if(i===selected){
-
-        tile.classList.add(
-          "selected"
-        );
-
-      }
-
-      if(
-        candidates.has(i)
-      ){
-
-        tile.classList.add(
-          "hint"
-        );
-
-      }
-
-      tile.draggable=true;
-
-      tile.onclick=()=>{
-
-        selected=i;
-
-        render();
-
-      };
-
-      tile.ondragstart=()=>{
-
-        dragIndex=i;
-
-      };
-
-      tile.ondragover=e=>
-        e.preventDefault();
-
-      tile.ondrop=()=>{
-
-        if(
-          dragIndex===null ||
-          dragIndex===i
-        )
-          return;
-
-        const x=
-          hands[0]
-            .splice(
-              dragIndex,
-              1
-            )[0];
-
-        hands[0]
-          .splice(
-            i,
-            0,
-            x
-          );
-
-        dragIndex=null;
-        selected=-1;
-
-        render();
-
-      };
-
-      hand.appendChild(tile);
-
-    }
-  );
-
-
-  /* 鳴き */
-
-  document
-    .getElementById("meldArea")
-    .innerHTML=
-      melds[0]
-        .map(w=>
-          `<span class="meld">
-            🀄 ${w}
-          </span>`
-        )
-        .join("");
-
-
-  /* あと何個 */
-
-  const completed=
-    Math.min(
-      words.length,
-      4
-    )
-    +
-    (pair.length ? 1:0);
-
-  document
-    .getElementById("remain")
-    .textContent=
-      Math.max(
-        0,
-        5-completed
-      )+
-      "個";
-
-
-  /* 待ち牌 */
-
-  const waits=
-    waitsFor(
-      hands[0]
-    );
-
-  document
-    .getElementById("waits")
-    .innerHTML=
-      waits.length
-        ?
-        waits
-          .map(c=>
-            `<span class="wait">${c}</span>`
-          )
-          .join("")
-        :
-        `<span style="color:#7f8d82">
-          テンパイしていません
-        </span>`;
-
-
-  /* ボタン */
-
-  document
-    .getElementById("draw")
-    .disabled=
-      gameOver ||
-      turn!==0 ||
-      hands[0].length>=14;
-
-  document
-    .getElementById("discard")
-    .disabled=
-      gameOver ||
-      turn!==0 ||
-      hands[0].length!==14;
-
-  document
-    .getElementById("ron")
-    .disabled=
-      !pendingRon;
-
-  document
-    .getElementById("chi")
-    .disabled=
-      !pendingChi;
-
-  document
-    .getElementById("tsumo")
-    .disabled=
-      gameOver ||
-      turn!==0 ||
-      !solve14(hands[0]);
-
-
-  /* プレイヤー */
-
-  const playerBox=
-    document.getElementById(
-      "players"
-    );
-
-  playerBox.innerHTML=
-    players
-      .map((p,i)=>`
-
-        <div class="playerCard
-          ${i===turn?"active":""}">
-
-          <div class="playerName">
-            ${p.name}
-          </div>
-
-          <div class="playerStats">
-
-            🏆 勝利：${wins[i]}<br>
-
-            🔥 ロン：${stats[i].ron}
-           　
-            ✨ ツモ：${stats[i].tsumo}<br>
-
-            🀄 チー：${stats[i].chi}
-
-          </div>
-
-        </div>
-
-      `)
-      .join("");
-
-
-  /* 相手表示 */
-
-  updateOpponents();
-
-
-  /* 図鑑 */
-
-  document
-    .getElementById("book")
-    .innerHTML=
-      [...books[0]]
-        .sort()
-        .map(w=>
-          `<span class="bookWord">
-            ${w}
-          </span>`
-        )
-        .join("")
-      ||
-      `<span style="color:#7f8d82">
-        まだ発見なし
-      </span>`;
-
-
-  /* 今回の単語 */
-
-  document
-    .getElementById("roundWords")
-    .innerHTML=
-      [...books[0]]
-        .slice(-12)
-        .map(w=>
-          `<span class="bookWord">
-            ${w}
-          </span>`
-        )
-        .join("")
-      ||
-      `<span style="color:#7f8d82">
-        まだなし
-      </span>`;
-
+  if(!state.started)return;
+  $('turnName').textContent=state.players[state.current].name+(state.current===0?'（あなた）':'');
+  $('turnName').className='turn '+(state.current===0?'my':'');
+  $('deckCount').textContent=state.deck.length;
+  $('roundWins').textContent=state.wins[0]||0;
+  $('handTitle').textContent=`${state.players[0].name}の手牌（${state.hands[0].length}枚）`;
+  const hand=$('hand'); hand.innerHTML='';
+  state.hands[0].forEach((c,i)=>{
+    const t=document.createElement('div'); t.className='tile'+(i===state.selected?' selected':'');
+    if(completedWords(state.hands[0]).some(w=>w.includes(c)))t.classList.add('hint');
+    t.textContent=c;t.draggable=true;t.dataset.i=i;
+    t.onclick=()=>{state.selected=i;render()};
+    t.ondragstart=()=>{state.dragged=i;t.classList.add('dragging')};
+    t.ondragend=()=>{state.dragged=null;t.classList.remove('dragging')};
+    t.ondragover=e=>e.preventDefault();
+    t.ondrop=()=>{const from=state.dragged,to=i;if(from==null||from===to)return;const x=state.hands[0].splice(from,1)[0];state.hands[0].splice(to,0,x);state.selected=-1;render()};
+    hand.appendChild(t);
+  });
+  $('riverGrid').innerHTML=state.river.map(x=>`<div class="tile discard" title="${state.players[x.player].name}">${x.char}</div>`).join('');
+  $('melds').innerHTML=state.melds[0].map(w=>`<div class="meld">🀄 <b>チー</b>「${w}」</div>`).join('');
+  const th=completedWords(state.hands[0]);
+  $('threeCount').textContent=`${Math.min(th.length,4)} / 4`;
+  const pair=wordsFromTiles(state.hands[0],2).map(x=>x.word);
+  $('pairCount').textContent=`${pair.length?1:0} / 1`;
+  const remain=Math.max(0,5-Math.min(th.length,4)-(pair.length?1:0));$('remainCount').textContent=`${remain}個`;
+  const ws=waits(state.hands[0]);
+  $('waitsList').innerHTML=ws.length?ws.map(c=>`<span class="wordchip">${c} が必要</span>`).join(''):'<span class="subtle">現在の手牌ではテンパイしていません</span>';
+  $('drawBtn').disabled=state.roundOver||state.current!==0||state.hands[0].length>=14;
+  $('discardBtn').disabled=state.roundOver||state.current!==0||state.hands[0].length!==14;
+  $('tsumoBtn').disabled=state.roundOver||!findPartition(state.hands[0]);
+  $('ronBtn').disabled=!state.pendingRon;
+  $('chiBtn').disabled=!state.pendingChi;
+  $('actionHelp').textContent=state.current===0?'自分の番：ツモ → 必要なら和了 → 牌を選んで捨てる。チー候補が出たら選択できます。':'相手の手番です。試作版ではAIが自動進行します。';
+  $('players').innerHTML=state.players.map((p,i)=>`<div class="player ${i===state.current?'active':''}"><div class="name">${p.name}${i===0?'（操作側）':''}</div><div class="mini">勝利 ${state.wins[i]} / ロン ${state.stats[i].ron} / ツモ ${state.stats[i].tsumo} / チー ${state.stats[i].chi}</div><div class="mini">公開鳴き：${state.melds[i].join('・')||'なし'}</div></div>`).join('');
+  $('book').innerHTML=[...state.books[0]].sort().map(w=>`<span class="wordchip">${w}</span>`).join('')||'<span class="subtle">まだ発見なし</span>';
+  $('mvp').innerHTML=`今回発見：${[...state.roundBook].length}語<br>通算図鑑：${state.books[0].size}語<br>チー：${state.stats[0].chi}回 / ロン：${state.stats[0].ron}回 / ツモ：${state.stats[0].tsumo}回`;
 }
-
-
-/* =========================================================
-   相手表示
-========================================================= */
-
-function updateOpponents(){
-
-  const positions=[
-    "opponentTop",
-    "opponentLeft",
-    "opponentRight"
-  ];
-
-  const others=
-    players
-      .map((p,i)=>({p,i}))
-      .filter(x=>x.i!==0);
-
-  positions.forEach(
-    (id,index)=>{
-
-      const el=
-        document.getElementById(id);
-
-      if(!el)
-        return;
-
-      const target=
-        others[index];
-
-      if(!target){
-
-        el.style.display="none";
-
-        return;
-
-      }
-
-      el.style.display="block";
-
-      el.innerHTML=`
-
-        <div class="opponentName">
-          ${target.p.name}
-        </div>
-
-        <div class="opponentInfo">
-          手牌：${hands[target.i].length}枚
-        </div>
-
-      `;
-
-    }
-  );
-
-}
-
+$('startBtn').onclick=setupState;
+$('drawBtn').onclick=draw;
+$('discardBtn').onclick=discard;
+$('ronBtn').onclick=doRon;
+$('chiBtn').onclick=doChi;
+$('tsumoBtn').onclick=()=>{const p=findPartition(state.hands[0]);if(p)showWin(0,p,'ツモ')};
+$('rematchBtn').onclick=rematch;
+$('closeOverlayBtn').onclick=()=>$('overlay').style.display='none';
+$('newRoundBtn').onclick=()=>{if(confirm('この局を終了して新しい局を始めますか？'))startRound()};
+$('backBtn').onclick=()=>{if(confirm('設定画面に戻りますか？')){state.started=false;$('game').style.display='none';$('setup').style.display='block';$('backBtn').style.display='none';$('newRoundBtn').style.display='none'}};
+$('playerCount').onchange=()=>{for(let i=3;i<=4;i++)$('p'+i).parentElement.style.display=(+$('playerCount').value>=i?'block':'none')};
+$('playerCount').onchange();
 </script>
-
 </body>
 </html>
