@@ -1,771 +1,200 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>極・ひらがな麻雀 (3人/4人対応)</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Canvas Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <!-- PeerJS -->
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;900&family=Shippori+Mincho:wght@700;800&display=swap" rel="stylesheet">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ひらがな麻雀 - オンライン対戦</title>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
-    * { box-sizing: border-box; touch-action: manipulation; }
-    body {
-      font-family: 'M PLUS Rounded 1c', sans-serif;
-      user-select: none;
-      -webkit-user-select: none;
-      background: #09130e;
-      color: #fff;
-      height: 100vh;
-      height: 100dvh;
-      overflow: hidden;
+    :root {
+      --bg-color: #0d1b1e;
+      --card-bg: #162a2d;
+      --accent-color: #00e676;
+      --text-color: #ffffff;
+      --gold: #ffd700;
     }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 10px; }
+    .container { width: 100%; max-width: 600px; background: var(--card-bg); padding: 25px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid #2a4d53; text-align: center; }
+    h1 { color: var(--accent-color); margin-bottom: 15px; font-size: 1.8rem; }
+    p { color: #ccc; margin-bottom: 15px; font-size: 0.95rem; }
+    
+    .btn { background: #00b0ff; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; margin: 6px; transition: 0.2s; width: 100%; max-width: 280px; }
+    .btn:hover { background: #0091ea; transform: translateY(-2px); }
+    .btn-gold { background: var(--gold); color: #000; font-size: 1.1rem; }
+    .btn-gold:hover { background: #e6c200; }
+    
+    input[type="text"] { padding: 12px; font-size: 1.1rem; border-radius: 8px; border: 1px solid #336666; background: #081012; color: #fff; width: 100%; max-width: 280px; text-align: center; margin-bottom: 15px; }
+    
+    /* モード選択 */
+    .mode-select { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
+    .mode-btn { flex: 1; max-width: 130px; background: #224448; color: #fff; border: 2px solid transparent; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .mode-btn.active { border-color: var(--accent-color); background: #133337; color: var(--accent-color); }
 
-    .mahjong-table {
-      background: radial-gradient(circle at center, #1b4d3e 0%, #0d2b22 65%, #05140e 100%);
-      box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
-      border: 8px solid #2d1810;
-      outline: 2px solid #d4af37;
-    }
-
-    .tile {
-      perspective: 1000px;
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-    .tile-inner {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      border-radius: 0.4rem;
-      background: linear-gradient(145deg, #ffffff 0%, #f5efe0 80%, #e6d3a7 100%);
-      border-top: 1px solid #ffffff;
-      border-left: 1px solid #ffffff;
-      border-right: 2px solid #b39b69;
-      border-bottom: 4px solid #10382b;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.5), inset 0 -2px 4px rgba(0,0,0,0.15);
-      transition: all 0.2s ease;
-    }
-
-    .tile:hover .tile-inner {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 18px rgba(0,0,0,0.6), 0 0 12px rgba(212,175,55,0.4);
-    }
-
-    .tile.selected .tile-inner {
-      transform: translateY(-12px) scale(1.05);
-      background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%) !important;
-      border-color: #f59e0b !important;
-      box-shadow: 0 14px 20px rgba(0,0,0,0.7), 0 0 20px rgba(245,158,11,0.8) !important;
-    }
-
-    .tile-locked .tile-inner {
-      background: linear-gradient(145deg, #fef9c3 0%, #fde047 100%) !important;
-      border: 2px solid #ca8a04 !important;
-      border-bottom: 4px solid #854d0e !important;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.4) !important;
-    }
-
-    .order-badge {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
-      color: #ffffff;
-      font-weight: 900;
-      font-size: 11px;
-      width: 20px;
-      height: 20px;
-      border-radius: 9999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #ffffff;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.5);
-      z-index: 20;
-    }
-
-    .gold-text {
-      background: linear-gradient(135deg, #fef08a 0%, #f59e0b 50%, #b45309 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
-    }
-
-    .gold-button {
-      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-      border: 1px solid #fef08a;
-      box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4), inset 0 1px 0 rgba(255,255,255,0.4);
-    }
-    .gold-button:hover {
-      background: linear-gradient(135deg, #fcd34d 0%, #b45309 100%);
-    }
-
-    @keyframes lightning-flash {
-      0% { opacity: 0; background: rgba(255,255,255,0); }
-      15% { opacity: 1; background: rgba(255,255,255,0.95); }
-      30% { opacity: 0.2; background: rgba(245,158,11,0.2); }
-      45% { opacity: 1; background: rgba(16, 185, 129, 0.9); }
-      100% { opacity: 0; background: rgba(0,0,0,0); }
-    }
-    .lightning-effect { animation: lightning-flash 0.65s ease-out forwards; }
-
-    @keyframes cutin-zoom {
-      0% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
-      70% { transform: scale(1.1) rotate(2deg); opacity: 1; }
-      100% { transform: scale(1) rotate(0deg); opacity: 1; }
-    }
-    .cutin-text {
-      animation: cutin-zoom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-      font-family: 'Shippori Mincho', serif;
-      text-shadow: 0 0 30px rgba(245, 158, 11, 0.9), 4px 4px 0px #000;
-    }
-
-    /* Pulse character animation */
-    @keyframes avatar-bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-    .avatar-anim { animation: avatar-bounce 2s infinite ease-in-out; }
+    /* 待機画面・キャラ表示 */
+    .avatar-img { width: 150px; height: 150px; border-radius: 50%; border: 4px solid var(--accent-color); object-fit: cover; margin: 15px auto; box-shadow: 0 0 20px rgba(0,230,118,0.4); display: block; }
+    .status-badge { background: #081012; border: 1px solid var(--accent-color); padding: 10px 20px; border-radius: 20px; display: inline-block; font-size: 1.2rem; font-weight: bold; margin: 15px 0; color: var(--accent-color); }
+    .player-list { display: flex; flex-direction: column; gap: 8px; margin: 15px 0; align-items: center; }
+    .player-card { background: #0a1517; padding: 10px 20px; border-radius: 8px; border: 1px solid #2a4d53; width: 100%; max-width: 280px; text-align: left; }
+    
+    .hidden { display: none !important; }
   </style>
 </head>
-<body class="flex flex-col justify-between items-center relative overflow-hidden h-screen bg-slate-950">
+<body>
 
-  <div id="lightning-overlay" class="pointer-events-none fixed inset-0 z-50 opacity-0"></div>
+<div class="container">
+  <h1>🀄 ひらがな麻雀</h1>
 
-  <!-- LOBBY SCREEN -->
-  <div id="start-screen" class="fixed inset-0 z-40 bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-950 flex flex-col items-center justify-center p-4">
-    <div class="max-w-lg w-full bg-slate-900/95 border-2 border-amber-500/60 p-6 md:p-8 rounded-3xl shadow-2xl backdrop-blur-2xl flex flex-col items-center text-center relative overflow-hidden">
-      
-      <div class="mb-4 relative">
-        <div class="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3.5 py-1 rounded-full mb-2">
-          <i class="fa-solid fa-crown text-amber-400 text-xs"></i>
-          <span class="text-xs font-bold text-amber-300 tracking-wider">最高峰 言葉合わせ麻雀</span>
-        </div>
-        <h1 class="text-3xl md:text-5xl font-black italic tracking-wider gold-text my-1">
-          🀄 極・ひらがな麻雀
-        </h1>
-        <p class="text-xs text-slate-300 mt-1">2文字（アタマ）×1 ＋ 3文字（面子）×4 ＝ 計14文字で半荘勝負！</p>
-      </div>
-
-      <!-- Player Name -->
-      <div class="w-full mb-3 text-left">
-        <label class="block text-xs font-bold text-amber-200/90 mb-1 flex items-center justify-between">
-          <span><i class="fa-solid fa-user text-amber-400 mr-1"></i> プレイヤー名</span>
-          <span class="text-[10px] text-emerald-400 font-mono font-bold" id="p2p-status-badge">📡 準備完了</span>
-        </label>
-        <input type="text" id="input-player-name" class="w-full px-4 py-3 bg-slate-800/90 border border-amber-500/40 rounded-xl focus:border-amber-400 outline-none font-bold text-slate-100 text-sm shadow-inner" value="あなた" />
-      </div>
-
-      <!-- Game Mode Selection (3-Player vs 4-Player) -->
-      <div class="w-full mb-3 text-left">
-        <label class="block text-xs font-bold text-amber-200/90 mb-1">
-          <i class="fa-solid fa-users text-amber-400 mr-1"></i> 対戦人数モード
-        </label>
-        <div class="grid grid-cols-2 gap-2">
-          <button id="btn-mode-3p" class="py-2.5 px-3 rounded-xl border-2 font-bold text-xs transition flex items-center justify-center gap-1.5 border-amber-500 bg-amber-500/20 text-amber-300">
-            <i class="fa-solid fa-user-group"></i> 3人麻雀
-          </button>
-          <button id="btn-mode-4p" class="py-2.5 px-3 rounded-xl border-2 font-bold text-xs transition flex items-center justify-center gap-1.5 border-slate-700 bg-slate-800 text-slate-400">
-            <i class="fa-solid fa-users"></i> 4人麻雀
-          </button>
-        </div>
-      </div>
-
-      <!-- Room Code & Invitation -->
-      <div class="w-full mb-4 text-left bg-slate-950/60 p-3.5 rounded-2xl border border-amber-500/30">
-        <label class="block text-xs font-bold text-amber-200/90 mb-1 flex items-center justify-between">
-          <span><i class="fa-solid fa-key text-amber-400 mr-1"></i> 対戦部屋コード</span>
-          <span class="text-[10px] text-amber-300">※同じコードで合流</span>
-        </label>
-        <div class="flex gap-2">
-          <input type="text" id="input-room-code" class="flex-1 px-4 py-2.5 bg-slate-800/90 border border-amber-500/40 rounded-xl focus:border-amber-400 outline-none font-mono text-center text-lg font-black tracking-widest text-amber-300 uppercase shadow-inner" placeholder="例: MAHJONG7" />
-          <button id="btn-generate-code" class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl border border-amber-500/40 text-xs font-bold transition">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-          </button>
-          <button id="btn-copy-code" class="px-3 py-2.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-xl border border-amber-500/40 text-xs font-bold transition">
-            <i class="fa-solid fa-copy"></i>
-          </button>
-        </div>
-        <div id="copy-notify-text" class="text-[11px] text-emerald-400 font-bold hidden mt-1.5">
-          <i class="fa-solid fa-circle-check"></i> <span id="copy-notify-msg">コピーしました！</span>
-        </div>
-      </div>
-
-      <!-- Buttons -->
-      <div class="w-full space-y-2.5">
-        <button id="btn-start-multi" class="w-full py-3.5 gold-button text-slate-950 font-black text-base md:text-lg rounded-2xl transform active:scale-95 transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-door-open text-lg"></i>
-          <span>部屋を作成・参加（待機室へ）</span>
-        </button>
-
-        <button id="btn-start-solo" class="w-full py-3 bg-slate-800/90 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-2xl border border-slate-700 transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-robot text-amber-400"></i>
-          <span>ソロ対局スタート (CPU対戦)</span>
-        </button>
-      </div>
-
-      <div class="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex justify-between w-full items-center">
-        <span><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> 東場・南場 半荘戦</span>
-        <button id="open-dict-lobby-btn" class="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-          <i class="fa-solid fa-book-open"></i> 語彙図鑑
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- WAITING ROOM MODAL -->
-  <div id="waiting-room-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md hidden p-4">
-    <div class="bg-slate-900 border-2 border-amber-500/80 p-6 rounded-3xl max-w-md w-full shadow-2xl text-center relative flex flex-col items-center">
-      
-      <!-- Character Avatar SVG (Cute One-Eyed Cyclops) -->
-      <div class="w-24 h-24 mb-3 avatar-anim relative">
-        <svg viewBox="0 0 100 100" class="w-full h-full filter drop-shadow-lg">
-          <!-- Body -->
-          <circle cx="50" cy="50" r="42" fill="#84cc16" stroke="#4d7c0f" stroke-width="3" />
-          <!-- Small Horns -->
-          <path d="M 32 15 Q 28 5 36 8 Z" fill="#f59e0b" />
-          <path d="M 68 15 Q 72 5 64 8 Z" fill="#f59e0b" />
-          <!-- Big Eye Outer -->
-          <circle cx="50" cy="42" r="18" fill="#ffffff" stroke="#1e293b" stroke-width="2" />
-          <!-- Pupil -->
-          <circle cx="50" cy="42" r="9" fill="#0284c7" />
-          <circle cx="53" cy="39" r="3" fill="#ffffff" />
-          <!-- Cheerful Mouth -->
-          <path d="M 38 65 Q 50 78 62 65" fill="none" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round" />
-        </svg>
-      </div>
-
-      <h3 class="text-2xl font-black gold-text mb-1">対戦相手を待っています…</h3>
-      <p class="text-xs text-slate-300 mb-4">全員が揃うまでしばらくお待ちください</p>
-
-      <!-- Player Counter Badge -->
-      <div class="bg-slate-950 border border-amber-500/50 px-6 py-2.5 rounded-full mb-5 shadow-inner">
-        <span class="text-xs text-slate-400 mr-2 font-bold">参加人数:</span>
-        <span id="waiting-counter" class="text-xl font-black text-amber-400">1 / 3 人</span>
-      </div>
-
-      <!-- Player List -->
-      <div id="waiting-player-list" class="w-full space-y-2 mb-6"></div>
-
-      <!-- Invite Buttons inside Waiting Room -->
-      <div class="w-full flex gap-2">
-        <button id="btn-copy-waiting-link" class="flex-1 py-3 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 rounded-xl border border-emerald-500/40 text-xs font-bold transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-share-nodes"></i> 招待リンクをコピー
-        </button>
-        <button id="btn-cancel-waiting" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 text-xs font-bold">
-          キャンセル
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CHALLENGE VERDICT MODAL -->
-  <div id="verdict-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md hidden p-4">
-    <div class="bg-slate-900 border-2 border-amber-400 p-6 rounded-3xl max-w-lg w-full shadow-2xl text-center relative text-white">
-      <div class="text-amber-400 font-extrabold text-xs mb-1 tracking-widest uppercase flex items-center justify-center gap-1">
-        <i class="fa-solid fa-gavel"></i> 新語チャレンジ審議
-      </div>
-      <h3 class="text-2xl font-black mb-2 gold-text">この上がり言葉を承認しますか？</h3>
-      <p class="text-xs text-slate-300 mb-3">辞書未登録の言葉が含まれています。</p>
-      <div id="verdict-word-list" class="flex flex-wrap justify-center gap-2 my-3 p-3 bg-slate-800/80 rounded-2xl border border-slate-700"></div>
-      <div class="flex gap-3 mt-4">
-        <button id="btn-verdict-approve" class="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-green-600 font-black text-base rounded-xl shadow-lg transition transform active:scale-95 text-white flex items-center justify-center gap-2">
-          <i class="fa-solid fa-circle-check"></i> 実在する！（承認）
-        </button>
-        <button id="btn-verdict-reject" class="px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl border border-slate-700 transition">
-          ❌ 存在しない
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CUTIN MODAL -->
-  <div id="cutin-modal" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md hidden p-4">
-    <div id="cutin-title" class="text-7xl md:text-9xl font-black italic gold-text cutin-text mb-2 tracking-wider">ロン！</div>
-    <div id="cutin-subtitle" class="text-base md:text-xl font-bold text-emerald-300 mb-4 text-center"></div>
-    <div id="cutin-words" class="flex flex-wrap justify-center gap-2 max-w-2xl mb-6 p-4 bg-slate-900/90 rounded-2xl border-2 border-amber-400 shadow-2xl"></div>
-    <button id="cutin-close-btn" class="px-8 py-3.5 gold-button text-slate-950 font-extrabold text-lg rounded-full shadow-2xl flex items-center gap-2">
-      <span>次局へ進む</span>
-      <i class="fa-solid fa-arrow-right"></i>
-    </button>
-  </div>
-
-  <!-- STANDINGS MODAL -->
-  <div id="match-end-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md hidden p-4">
-    <div class="bg-slate-900 border-2 border-amber-400 p-6 rounded-3xl max-w-md w-full shadow-2xl text-center relative text-white flex flex-col items-center">
-      <div class="text-amber-400 font-black text-sm tracking-widest uppercase mb-1 flex items-center gap-1">
-        <i class="fa-solid fa-trophy text-amber-400"></i> 半荘戦 最終結果
-      </div>
-      <h2 class="text-3xl font-black gold-text mb-4">勝者決定！</h2>
-      <div id="standings-list" class="w-full space-y-2 mb-6"></div>
-      <button id="btn-rematch" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 font-black text-lg rounded-2xl shadow-xl flex items-center justify-center gap-2 border border-emerald-300">
-        <i class="fa-solid fa-rotate-right"></i> もう一度遊ぶ（再戦）
-      </button>
-    </div>
-  </div>
-
-  <!-- DICTIONARY MODAL -->
-  <div id="dict-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
-    <div class="bg-slate-900 border-2 border-emerald-500/50 p-6 rounded-3xl max-w-lg w-full shadow-2xl relative text-slate-100 max-h-[80vh] flex flex-col">
-      <button id="close-dict-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-      <h3 class="text-xl font-black text-emerald-400 mb-1 flex items-center gap-2">
-        <i class="fa-solid fa-book-bookmark"></i> 習得語彙・記憶図鑑
-      </h3>
-      <p class="text-xs text-slate-300 mb-3">上がった言葉が自動保存され、対局中の「待ち文字計算」に活用されます。</p>
-      <div class="flex gap-2 mb-3">
-        <span class="text-xs bg-slate-800 px-3 py-1 rounded-full text-amber-300 border border-slate-700">
-          2文字: <strong id="dict-count-2">0</strong> 個
-        </span>
-        <span class="text-xs bg-slate-800 px-3 py-1 rounded-full text-cyan-300 border border-slate-700">
-          3文字: <strong id="dict-count-3">0</strong> 個
-        </span>
-      </div>
-      <div id="dict-words-container" class="flex-1 overflow-y-auto pr-1 space-y-3"></div>
-    </div>
-  </div>
-
-  <!-- HEADER -->
-  <header class="w-full max-w-5xl px-4 py-2 flex justify-between items-center z-10 bg-slate-900/90 backdrop-blur-md border-b border-amber-500/30 shrink-0 shadow-lg">
-    <div class="flex items-center gap-3">
-      <button id="btn-back-lobby" class="text-slate-300 hover:text-white text-xs bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-1.5 font-bold transition">
-        <i class="fa-solid fa-house text-amber-400"></i> ロビー
-      </button>
-      <div class="font-black text-amber-400 text-sm hidden sm:block gold-text tracking-wider">🀄 極・ひらがな麻雀</div>
-      <span id="room-display-game" class="text-xs text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30 font-mono font-bold flex items-center gap-1">
-        <i class="fa-solid fa-wifi text-[10px] text-emerald-400"></i> SOLO
-      </span>
-    </div>
-
-    <div class="flex items-center gap-2">
-      <button id="open-dict-game-btn" class="px-3 py-1.5 bg-emerald-900/80 text-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow border border-emerald-500/40">
-        <i class="fa-solid fa-book"></i> 語彙図鑑 (<span id="dict-count-badge">0</span>)
-      </button>
-      <button id="sound-toggle-btn" class="px-3 py-1.5 bg-slate-800 text-yellow-400 rounded-xl border border-slate-700 text-xs shadow">
-        <i class="fa-solid fa-volume-high"></i>
-      </button>
-    </div>
-  </header>
-
-  <!-- MAIN MAHJONG TABLE -->
-  <main class="w-full max-w-5xl flex-1 flex flex-col justify-between px-2 py-1.5 relative z-0 overflow-hidden mahjong-table rounded-2xl my-1">
+  <!-- 1. トップ（ロビー）画面 -->
+  <div id="screen-lobby">
+    <p>対戦人数を選び、部屋コードを入力して参戦！</p>
     
-    <!-- TOP OPPONENT -->
-    <div class="flex flex-col items-center w-full shrink-0">
-      <div id="player-2-card" class="flex items-center gap-2 bg-slate-900/90 px-3 py-1 rounded-full border border-amber-500/40 text-xs shadow-md">
-        <span class="w-2.5 h-2.5 rounded-full bg-slate-500" id="p2-turn-dot"></span>
-        <span class="font-bold text-slate-200" id="p2-name">CPU 北</span>
-        <span class="text-[10px] bg-amber-500/30 text-amber-200 px-1.5 py-0.2 rounded font-bold hidden" id="p2-dealer-badge">親</span>
-        <span class="text-amber-400 font-extrabold" id="p2-score">25000点</span>
-      </div>
-      <div id="p2-discards" class="flex flex-wrap justify-center gap-1 max-w-md my-1 min-h-[28px]"></div>
+    <div class="mode-select">
+      <button class="mode-btn active" id="btn-mode-3" onclick="setMode(3)">3人対戦</button>
+      <button class="mode-btn" id="btn-mode-4" onclick="setMode(4)">4人対戦</button>
     </div>
 
-    <!-- MIDDLE AREA -->
-    <div class="flex justify-between items-center w-full my-auto py-1">
-      <!-- LEFT OPPONENT -->
-      <div class="flex flex-col items-start w-20 sm:w-28 shrink-0" id="p3-container">
-        <div id="player-3-card" class="flex items-center gap-1 bg-slate-900/90 px-2.5 py-1 rounded-full border border-amber-500/40 text-[11px] mb-1 shadow-md">
-          <span class="w-2.5 h-2.5 rounded-full bg-slate-500" id="p3-turn-dot"></span>
-          <span class="font-bold text-slate-200 truncate" id="p3-name">CPU 西</span>
-        </div>
-        <div class="text-[11px] text-amber-400 font-extrabold mb-1" id="p3-score">25000点</div>
-        <div id="p3-discards" class="flex flex-wrap gap-1 max-w-[80px] min-h-[40px]"></div>
-      </div>
+    <div>
+      <input type="text" id="room-code-input" placeholder="部屋コード (例: 7777)" maxlength="12">
+      <br>
+      <button class="btn btn-gold" onclick="joinRoom()">対戦部屋に入る・作成</button>
+    </div>
+  </div>
 
-      <!-- CENTER BOARD -->
-      <div class="flex flex-col items-center justify-center bg-slate-950/90 border-2 border-amber-500/50 p-3 rounded-2xl shadow-2xl relative max-w-xs w-full mx-1 backdrop-blur-md">
-        <div class="flex justify-between items-center w-full mb-1.5 text-xs font-bold text-slate-300 border-b border-amber-500/20 pb-1">
-          <span id="game-round-text" class="gold-text font-black text-sm">東 1 局</span>
-          <span id="deck-count-text" class="text-cyan-300 flex items-center gap-1"><i class="fa-solid fa-layer-group text-amber-400"></i> 山札: 70牌</span>
-        </div>
+  <!-- 2. 待機画面 -->
+  <div id="screen-waiting" class="hidden">
+    <h2>対戦相手を待っています...</h2>
+    
+    <!-- ご指定のアイコン画像 -->
+    <img src="54_20260130212031.jpg" alt="キャラクター" class="avatar-img" onerror="this.src='https://via.placeholder.com/150/00e676/000000?text=Wait...'">
+    
+    <div class="status-badge">
+      参加中: <span id="current-count">1</span> / <span id="target-count">3</span> 人
+    </div>
+    
+    <p style="font-size:0.85rem; color:#888;">※コードを入力した本物のプレイヤーが揃うまでCPUは入らず待機します</p>
 
-        <div class="flex items-center justify-between w-full my-1">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-amber-300">ドラ表示:</span>
-            <div id="dora-tile" class="w-8 h-10 bg-gradient-to-b from-amber-100 to-amber-200 border-2 border-amber-400 rounded-lg flex items-center justify-center font-black text-xl text-slate-900 shadow-md">
-              あ
-            </div>
-          </div>
-
-          <div id="tenpai-display-container" class="hidden flex flex-col items-end">
-            <span class="text-[11px] font-black text-yellow-300 animate-pulse flex items-center gap-1"><i class="fa-solid fa-crosshair"></i> テンパイ！</span>
-            <div id="waiting-tiles-list" class="flex gap-1 overflow-x-auto max-w-[120px] mt-0.5"></div>
-          </div>
-        </div>
-
-        <div id="table-status-msg" class="text-[11px] text-center text-emerald-300 font-bold h-5 flex items-center justify-center mt-1">
-          手牌をタップ順に選択して「固定」できます。
-        </div>
-
-        <div id="action-buttons-container" class="flex gap-2 mt-1.5">
-          <button id="btn-ron" class="hidden px-5 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white font-black text-sm rounded-xl border-2 border-yellow-300 animate-bounce">
-            ロン！！
-          </button>
-          <button id="btn-tsumo" class="hidden px-6 py-2 gold-button text-slate-950 font-black text-base rounded-xl border-2 border-white animate-bounce">
-            ツモ！！
-          </button>
-        </div>
-      </div>
-
-      <!-- RIGHT OPPONENT -->
-      <div class="flex flex-col items-end w-20 sm:w-28 shrink-0">
-        <div id="player-1-card" class="flex items-center gap-1 bg-slate-900/90 px-2.5 py-1 rounded-full border border-amber-500/40 text-[11px] mb-1 shadow-md">
-          <span class="font-bold text-slate-200 truncate" id="p1-name">CPU 南</span>
-          <span class="w-2.5 h-2.5 rounded-full bg-slate-500" id="p1-turn-dot"></span>
-        </div>
-        <div class="text-[11px] text-amber-400 font-extrabold mb-1" id="p1-score">25000点</div>
-        <div id="p1-discards" class="flex flex-wrap justify-end gap-1 max-w-[80px] min-h-[40px]"></div>
-      </div>
+    <div class="player-list" id="player-list-container">
+      <!-- 参加プレイヤー一覧がここに入る -->
     </div>
 
-    <!-- BOTTOM USER AREA -->
-    <div class="w-full flex flex-col items-center shrink-0">
-      <div id="p0-discards" class="flex flex-wrap justify-center gap-1 max-w-xl min-h-[28px] mb-1 bg-slate-950/60 p-1.5 rounded-xl border border-amber-500/20"></div>
-
-      <div class="flex items-center justify-between w-full px-1 mb-1.5 text-xs gap-1">
-        <div id="p0-card" class="bg-slate-900/90 text-amber-300 font-bold px-3 py-1.5 rounded-xl border border-amber-500/40 flex items-center gap-1.5 shrink-0 shadow-md">
-          <span class="w-2.5 h-2.5 rounded-full bg-green-400" id="p0-turn-dot"></span>
-          <span id="p0-name" class="text-white font-bold">あなた</span>: <span id="p0-score" class="text-amber-400 font-extrabold">25000点</span>
-        </div>
-
-        <div class="flex items-center gap-1.5">
-          <button id="btn-lock-group" class="px-3 py-1.5 gold-button text-slate-950 font-black rounded-xl text-xs shadow-md disabled:opacity-30">
-            <i class="fa-solid fa-lock"></i> 固定
-          </button>
-          <button id="btn-transform-tile" class="px-3 py-1.5 bg-slate-800 text-yellow-300 rounded-xl border border-yellow-500/40 font-bold text-xs disabled:opacity-30">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> 変形
-          </button>
-          <button id="btn-discard" class="px-3.5 py-1.5 bg-rose-600 text-white font-bold rounded-xl text-xs shadow-md disabled:opacity-30">
-            捨てる
-          </button>
-        </div>
-      </div>
-
-      <!-- HAND TILES CONTAINER -->
-      <div class="w-full bg-slate-950/80 p-2 rounded-2xl border border-amber-500/30 flex items-center gap-2 overflow-x-auto min-h-[82px] max-h-[92px] shadow-2xl backdrop-blur-md">
-        <div id="locked-groups-area" class="flex items-center gap-2 border-r border-amber-500/30 pr-2 shrink-0"></div>
-        <div id="free-tiles-area" class="flex items-center gap-1.5 flex-1"></div>
-      </div>
+    <div style="margin-top: 15px;">
+      <button class="btn" onclick="copyInviteURL()">🔗 招待URLをコピー</button>
+      <button class="btn" style="background:#444;" onclick="copyRoomCode()">🔑 部屋コードをコピー</button>
     </div>
-  </main>
+  </div>
 
-  <script>
-    let currentUserId = 'user_' + Math.random().toString(36).substr(2, 6);
-    let selectedModeCount = 3; // Default 3-Player
+  <!-- 3. ゲーム画面 -->
+  <div id="screen-game" class="hidden">
+    <h2 style="color:var(--accent-color); font-size:2rem; margin-top:20px;">🎉 全員揃いました！</h2>
+    <p style="margin-top:10px;">対局を開始します...</p>
+  </div>
+</div>
 
-    // Sound Synthesizer
-    class SoundEngine {
-      constructor() { this.ctx = null; this.muted = false; }
-      init() { if (!this.ctx) { const AudioCtx = window.AudioContext || window.webkitAudioContext; if (AudioCtx) this.ctx = new AudioCtx(); } }
-      playClick() {
-        if (this.muted) return; this.init(); if (!this.ctx) return;
-        const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
-        osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.05);
-        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.05);
-      }
-      playDiscard() {
-        if (this.muted) return; this.init(); if (!this.ctx) return;
-        const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.06);
-        gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.06);
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(); osc.stop(this.ctx.currentTime + 0.06);
-      }
+<script>
+  let targetPlayers = 3;
+  let currentRoomCode = '';
+  let myPeerId = '';
+  let peer = null;
+  let connections = [];
+
+  // URLパラメーターから自動で部屋コードをロード
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room');
+    if (roomParam) {
+      document.getElementById('room-code-input').value = roomParam;
     }
-    const SE = new SoundEngine();
+  });
 
-    const CHAR_TRANSFORMS = {
-      'あ': 'ぁ', 'ぁ': 'あ', 'い': 'ぃ', 'ぃ': 'い', 'う': 'ぅ', 'ぅ': 'ゔ', 'ゔ': 'う',
-      'か': 'が', 'が': 'か', 'き': 'ぎ', 'ぎ': 'き', 'く': 'ぐ', 'ぐ': 'く',
-      'さ': 'ざ', 'ざ': 'さ', 'し': 'じ', 'じ': 'し', 'す': 'ず', 'ず': 'す',
-      'た': 'だ', 'だ': 'た', 'つ': 'っ', 'っ': 'づ', 'は': 'ば', 'ば': 'ぱ', 'ぱ': 'は'
-    };
+  function setMode(num) {
+    targetPlayers = num;
+    document.getElementById('btn-mode-3').classList.toggle('active', num === 3);
+    document.getElementById('btn-mode-4').classList.toggle('active', num === 4);
+    document.getElementById('target-count').innerText = num;
+  }
 
-    const DEFAULT_WORDS_2 = ["いぬ", "ねこ", "さる", "うし", "うま", "とり", "かめ", "たこ", "いか", "やま", "かわ", "うみ", "そら", "はな"];
-    const DEFAULT_WORDS_3 = ["きりん", "うさぎ", "きつね", "たぬき", "くじら", "さくら", "りんご", "みかん", "いちご", "くるま", "とけい"];
-
-    class VocabularyStore {
-      constructor() {
-        this.words2 = new Set(DEFAULT_WORDS_2);
-        this.words3 = new Set(DEFAULT_WORDS_3);
-      }
-      addWord(word) {
-        if (!word) return;
-        if (word.length === 2) this.words2.add(word);
-        if (word.length === 3) this.words3.add(word);
-      }
-      hasWord2(word) { return this.words2.has(word); }
-      hasWord3(word) { return this.words3.has(word); }
+  function joinRoom() {
+    const code = document.getElementById('room-code-input').value.trim();
+    if (!code) {
+      alert('部屋コードを入力してください！');
+      return;
     }
-    const dictStore = new VocabularyStore();
-    const HIRAGANA_BASE = ["あ","い","う","え","お","か","き","く","け","こ","さ","し","す","せ","そ","た","ち","つ","て","と","な","に","ぬ","ね","の","は","ひ","ふ","へ","ほ","ま","み","む","め","も","や","ゆ","よ","ら","り","る","れ","ろ","わ","ん"];
+    currentRoomCode = code;
 
-    class HiraganaMahjongGame {
-      constructor() {
-        this.playerCount = 3;
-        this.roomCode = "SOLO";
-        this.myPlayerIndex = 0;
-        this.turnIndex = 0;
-        this.deck = [];
-        this.dora = "あ";
-        this.selectedTileIndices = [];
-        this.wind = "東";
-        this.roundNum = 1;
-        this.dealerIndex = 0;
-        this.players = [];
-        this.lastDiscardedTile = null;
-        this.lastDiscarderIndex = -1;
-        this.gameStatus = "LOBBY";
-        this.waitingChars = [];
-      }
+    // 画面切り替え
+    document.getElementById('screen-lobby').classList.add('hidden');
+    document.getElementById('screen-waiting').classList.remove('hidden');
 
-      initPlayers(count, userPName) {
-        this.playerCount = count;
-        this.players = [];
-        this.players.push({ name: userPName, score: 25000, lockedGroups: [], freeHand: [], discards: [], isCpu: false, uid: currentUserId });
+    // 通信の開始（人間同士のマッチング）
+    initPeer(code);
+  }
 
-        const cpuNames = ["CPU 南", "CPU 北", "CPU 西"];
-        for (let i = 1; i < count; i++) {
-          this.players.push({ name: cpuNames[i - 1], score: 25000, lockedGroups: [], freeHand: [], discards: [], isCpu: true, uid: 'cpu_' + i });
-        }
-      }
+  function initPeer(code) {
+    // ユニークなIDでPeer作成
+    myPeerId = 'mahjong-' + code + '-' + Math.floor(Math.random() * 8999 + 1000);
+    peer = new Peer(myPeerId);
 
-      generateDeck() {
-        let pool = [];
-        HIRAGANA_BASE.forEach(char => pool.push(char, char, char));
-        for (let i = pool.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [pool[i], pool[j]] = [pool[j], pool[i]];
-        }
-        return pool;
-      }
-
-      startNewRound() {
-        this.deck = this.generateDeck();
-        this.dora = this.deck.pop();
-        this.turnIndex = this.dealerIndex;
-        this.gameStatus = "PLAYING";
-        this.selectedTileIndices = [];
-        this.waitingChars = [];
-
-        for (let p = 0; p < this.playerCount; p++) {
-          this.players[p].lockedGroups = [];
-          this.players[p].freeHand = [];
-          this.players[p].discards = [];
-          for (let i = 0; i < 13; i++) {
-            this.players[p].freeHand.push({
-              id: `p${p}_${i}_${Math.random().toString(36).substr(2,4)}`,
-              char: this.deck.pop()
-            });
-          }
-        }
-        this.drawTile(this.turnIndex);
-      }
-
-      drawTile(pIdx) {
-        if (this.deck.length === 0) {
-          alert("【流局】山札がなくなりました！");
-          return;
-        }
-        const drawnChar = this.deck.pop();
-        this.players[pIdx].freeHand.push({ id: `draw_${Date.now()}`, char: drawnChar });
-      }
-
-      discardTile(pIdx, tileIndex) {
-        const p = this.players[pIdx];
-        if (tileIndex < 0 || tileIndex >= p.freeHand.length) return;
-        const discarded = p.freeHand.splice(tileIndex, 1)[0];
-        p.discards.push(discarded.char);
-        this.lastDiscardedTile = discarded.char;
-        this.lastDiscarderIndex = pIdx;
-        SE.playDiscard();
-
-        if (pIdx === this.myPlayerIndex) this.selectedTileIndices = [];
-
-        setTimeout(() => {
-          this.turnIndex = (this.turnIndex + 1) % this.playerCount;
-          this.drawTile(this.turnIndex);
-          if (this.players[this.turnIndex].isCpu) this.handleCpuTurn(this.turnIndex);
-          renderUI();
-        }, 600);
-      }
-
-      handleCpuTurn(cpuIdx) {
-        setTimeout(() => {
-          if (this.turnIndex !== cpuIdx) return;
-          const discardIdx = Math.floor(Math.random() * this.players[cpuIdx].freeHand.length);
-          this.discardTile(cpuIdx, discardIdx);
-        }, 800);
-      }
-    }
-
-    const game = new HiraganaMahjongGame();
-
-    // DOM Elements
-    const btnMode3p = document.getElementById('btn-mode-3p');
-    const btnMode4p = document.getElementById('btn-mode-4p');
-    const waitingRoomModal = document.getElementById('waiting-room-modal');
-    const waitingCounter = document.getElementById('waiting-counter');
-    const waitingPlayerList = document.getElementById('waiting-player-list');
-
-    // Toggle 3P / 4P Mode
-    btnMode3p.addEventListener('click', () => {
-      selectedModeCount = 3;
-      btnMode3p.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs transition flex items-center justify-center gap-1.5 border-amber-500 bg-amber-500/20 text-amber-300";
-      btnMode4p.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs transition flex items-center justify-center gap-1.5 border-slate-700 bg-slate-800 text-slate-400";
+    peer.on('open', (id) => {
+      updateUI([ 'あなた (プレイヤー1)' ]);
     });
 
-    btnMode4p.addEventListener('click', () => {
-      selectedModeCount = 4;
-      btnMode4p.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs transition flex items-center justify-center gap-1.5 border-amber-500 bg-amber-500/20 text-amber-300";
-      btnMode3p.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs transition flex items-center justify-center gap-1.5 border-slate-700 bg-slate-800 text-slate-400";
-    });
-
-    // Start Game from Lobby (Multiplayer with Waiting Room)
-    document.getElementById('btn-start-multi').addEventListener('click', () => {
-      const pName = document.getElementById('input-player-name').value.trim() || 'あなた';
-      game.initPlayers(selectedModeCount, pName);
+    // 他プレイヤーからの接続受領
+    peer.on('connection', (conn) => {
+      connections.push(conn);
       
-      // Open Waiting Room
-      document.getElementById('start-screen').classList.add('hidden');
-      waitingRoomModal.classList.remove('hidden');
-
-      updateWaitingRoomUI(1, selectedModeCount);
-
-      // Simulation: Simulated Player Join
-      setTimeout(() => {
-        if (!waitingRoomModal.classList.contains('hidden')) {
-          updateWaitingRoomUI(2, selectedModeCount);
-        }
-      }, 2000);
-
-      if (selectedModeCount === 4) {
-        setTimeout(() => {
-          if (!waitingRoomModal.classList.contains('hidden')) {
-            updateWaitingRoomUI(3, selectedModeCount);
-          }
-        }, 3500);
-      }
-
-      // Auto start when full
-      setTimeout(() => {
-        if (!waitingRoomModal.classList.contains('hidden')) {
-          waitingRoomModal.classList.add('hidden');
-          game.startNewRound();
-          renderUI();
-        }
-      }, selectedModeCount === 3 ? 4000 : 5500);
-    });
-
-    // Start Solo Mode directly
-    document.getElementById('btn-start-solo').addEventListener('click', () => {
-      const pName = document.getElementById('input-player-name').value.trim() || 'あなた';
-      game.initPlayers(selectedModeCount, pName);
-      document.getElementById('start-screen').classList.add('hidden');
-      game.startNewRound();
-      renderUI();
-    });
-
-    document.getElementById('btn-cancel-waiting').addEventListener('click', () => {
-      waitingRoomModal.classList.add('hidden');
-      document.getElementById('start-screen').classList.remove('hidden');
-    });
-
-    function updateWaitingRoomUI(joinedCount, maxCount) {
-      waitingCounter.innerText = `${joinedCount} / ${maxCount} 人`;
-      waitingPlayerList.innerHTML = '';
-
-      for (let i = 0; i < maxCount; i++) {
-        const item = document.createElement('div');
-        item.className = "flex justify-between items-center bg-slate-800/90 p-3 rounded-xl border border-slate-700 text-xs font-bold";
-        if (i < joinedCount) {
-          const name = i === 0 ? game.players[0].name : `対戦相手 ${i}`;
-          item.innerHTML = `<span class="text-amber-300"><i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> ${name}</span><span class="text-emerald-400 text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded">準備完了</span>`;
-        } else {
-          item.innerHTML = `<span class="text-slate-500"><i class="fa-solid fa-spinner animate-spin mr-1.5"></i> 参加待機中...</span><span class="text-slate-500 text-[10px]">Empty</span>`;
-        }
-        waitingPlayerList.appendChild(item);
-      }
-    }
-
-    // Render Main Game UI
-    function renderUI() {
-      document.getElementById('game-round-text').innerText = `${game.wind} ${game.roundNum} 局`;
-      document.getElementById('deck-count-text').innerHTML = `<i class="fa-solid fa-layer-group text-amber-400"></i> 山札: ${game.deck.length}牌`;
-      document.getElementById('dora-tile').innerText = game.dora;
-
-      // Adjust for 3-Player / 4-Player Layout
-      const p3Container = document.getElementById('p3-container');
-      if (game.playerCount === 3) {
-        p3Container.classList.add('invisible');
-      } else {
-        p3Container.classList.remove('invisible');
-      }
-
-      // Free Hand Rendering
-      const freeTilesArea = document.getElementById('free-tiles-area');
-      freeTilesArea.innerHTML = '';
-      const p0 = game.players[0];
-
-      (p0.freeHand || []).forEach((tileObj, fIdx) => {
-        const tileEl = document.createElement('div');
-        const isSelected = game.selectedTileIndices.includes(fIdx);
-        tileEl.className = `tile w-10 sm:w-12 h-13 sm:h-16 ${isSelected ? 'selected' : ''}`;
-        tileEl.innerHTML = `
-          <div class="tile-inner flex flex-col justify-between p-0.5 text-slate-900">
-            <span class="text-[8px] font-bold text-amber-800/40">自由</span>
-            <span class="text-lg sm:text-2xl font-black text-center my-auto leading-none">${tileObj.char}</span>
-          </div>
-        `;
-        tileEl.addEventListener('click', () => {
-          SE.playClick();
-          const pos = game.selectedTileIndices.indexOf(fIdx);
-          if (pos !== -1) game.selectedTileIndices.splice(pos, 1);
-          else game.selectedTileIndices.push(fIdx);
-          renderUI();
-        });
-        freeTilesArea.appendChild(tileEl);
+      conn.on('open', () => {
+        broadcastPlayerCount();
       });
 
-      // Button State
-      document.getElementById('btn-discard').disabled = game.turnIndex !== 0 || game.selectedTileIndices.length !== 1;
+      conn.on('close', () => {
+        connections = connections.filter(c => c !== conn);
+        broadcastPlayerCount();
+      });
+    });
+  }
+
+  function broadcastPlayerCount() {
+    const totalCount = connections.length + 1;
+    let list = ['あなた (プレイヤー1)'];
+    for(let i = 2; i <= totalCount; i++) {
+      list.push(`プレイヤー ${i}`);
     }
+    updateUI(list);
 
-    document.getElementById('btn-discard').addEventListener('click', () => {
-      const selected = game.selectedTileIndices[0];
-      if (selected !== undefined && game.turnIndex === 0) {
-        game.discardTile(0, selected);
-      }
-    });
+    // 人数が満たされたらゲーム開始
+    if (totalCount >= targetPlayers) {
+      setTimeout(() => {
+        document.getElementById('screen-waiting').classList.add('hidden');
+        document.getElementById('screen-game').classList.remove('hidden');
+      }, 800);
+    }
+  }
 
-    document.getElementById('btn-back-lobby').addEventListener('click', () => {
-      document.getElementById('start-screen').classList.remove('hidden');
-    });
+  function updateUI(playerList) {
+    document.getElementById('current-count').innerText = playerList.length;
+    const container = document.getElementById('player-list-container');
+    container.innerHTML = '';
 
-    // Copy handlers
-    document.getElementById('btn-generate-code').addEventListener('click', () => {
-      document.getElementById('input-room-code').value = 'MAHJONG' + Math.floor(10 + Math.random() * 90);
+    playerList.forEach((name) => {
+      const card = document.createElement('div');
+      card.className = 'player-card';
+      card.innerText = '🟢 ' + name;
+      container.appendChild(card);
     });
-  </script>
+  }
+
+  function copyRoomCode() {
+    navigator.clipboard.writeText(currentRoomCode);
+    alert('部屋コードをコピーしました: ' + currentRoomCode);
+  }
+
+  function copyInviteURL() {
+    const inviteURL = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(currentRoomCode)}`;
+    navigator.clipboard.writeText(inviteURL);
+    alert('招待URLをコピーしました！LINE等で友達に共有してください。');
+  }
+</script>
+
 </body>
 </html>
