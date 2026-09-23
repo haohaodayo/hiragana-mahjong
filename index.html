@@ -1,321 +1,1537 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ひらジャン - ひらがな麻雀</title>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="words.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>極・ひらがな麻雀 - Luxury Hiragana Mahjong</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- PeerJS for Direct P2P Online Multiplayer without Server Setup -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;900&family=Shippori+Mincho:wght@700;800&display=swap" rel="stylesheet">
+
   <style>
-    :root {
-      --table-bg: #0b2216;
-      --felt-center: #153e29;
-      --felt-outer: #0d2a1b;
-      --frame-wood: #3a1e05;
-      --gold: #f1c40f;
-      --tile-face: #fffdf5;
-      --tile-side: #e5d8b0;
-      --tile-text: #1a252f;
+    * {
+      box-sizing: border-box;
+      touch-action: manipulation;
     }
-    * { box-sizing: border-box; font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; }
-    body { margin: 0; min-height: 100vh; background: #050a07; color: #fff; display: flex; flex-direction: column; align-items: center; }
-    button { cursor: pointer; border: none; background: #27ae60; color: #fff; border-radius: 6px; padding: 8px 16px; font-weight: bold; box-shadow: 0 3px 0 #1e8449; }
-    button:hover { filter: brightness(1.1); }
-    button:active { transform: translateY(2px); box-shadow: 0 1px 0 #1e8449; }
-    button.primary { background: #e67e22; box-shadow: 0 3px 0 #a04000; }
-    button.danger { background: #c0392b; box-shadow: 0 3px 0 #802015; }
-    .wrap { width: 100%; max-width: 1100px; padding: 10px; }
-    .card { background: #0f1712; border: 2px solid #27ae60; border-radius: 12px; padding: 20px; text-align: center; }
-    .hidden { display: none !important; }
-
-    /* 本格雀卓レイアウト */
-    .table-container { background: var(--frame-wood); padding: 12px; border-radius: 16px; border: 4px solid #5c330a; margin-top: 10px; }
-    .table-felt {
-      background: radial-gradient(circle, var(--felt-center), var(--felt-outer));
-      border: 2px solid #205436;
-      border-radius: 10px;
-      padding: 15px;
-      display: grid;
-      grid-template-columns: 140px 1fr 140px;
-      grid-template-rows: 60px 1fr 60px;
-      gap: 10px;
-      min-height: 480px;
-    }
-
-    .seat { background: rgba(0,0,0,0.4); border: 1px solid #2e7d32; border-radius: 8px; padding: 8px; text-align: center; font-size: 12px; }
-    .seat.active { border-color: var(--gold); box-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
-    .seat-top { grid-column: 2; grid-row: 1; justify-self: center; width: 200px; }
-    .seat-left { grid-column: 1; grid-row: 2; align-self: center; }
-    .seat-right { grid-column: 3; grid-row: 2; align-self: center; }
-    .seat-bottom { grid-column: 2; grid-row: 3; justify-self: center; width: 200px; }
-
-    .center-board {
-      grid-column: 2; grid-row: 2;
-      background: rgba(5, 15, 10, 0.7);
-      border: 2px solid #1e4620;
-      border-radius: 8px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .river-area { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; align-content: start; min-height: 140px; }
-
-    /* 麻雀牌 & ドラッグ対応 */
-    .tile {
-      width: 42px; height: 56px;
-      background: linear-gradient(180deg, var(--tile-face) 80%, var(--tile-side));
-      color: var(--tile-text);
-      border-radius: 5px;
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 24px; font-weight: bold;
-      cursor: grab;
-      box-shadow: 0 4px 0 #887a50;
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
       user-select: none;
-      transition: transform 0.1s;
+      -webkit-user-select: none;
+      background: #09130e;
+      color: #fff;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
     }
-    .tile:active { cursor: grabbing; }
-    .tile.selected { transform: translateY(-8px); outline: 2px solid var(--gold); }
-    .tile.dragging { opacity: 0.4; }
-    .tile-river { width: 32px; height: 44px; font-size: 18px; box-shadow: 0 2px 0 #776a40; cursor: default; }
 
-    .hand-container { margin-top: 10px; background: rgba(0,0,0,0.6); padding: 12px; border-radius: 10px; border: 1px solid #27ae60; }
-    .hand-tiles { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin: 10px 0; min-height: 60px; }
-    .complete-hint { background: rgba(241, 196, 15, 0.2); border: 1px solid var(--gold); color: var(--gold); padding: 6px; border-radius: 6px; font-size: 13px; text-align: center; font-weight: bold; }
+    /* Luxury Mahjong Table Felt Background */
+    .mahjong-table {
+      background: radial-gradient(circle at center, #1b4d3e 0%, #0d2b22 65%, #05140e 100%);
+      box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+      border: 8px solid #2d1810;
+      outline: 2px solid #d4af37;
+    }
+
+    /* Tile Styles - Ivory Top with Deep Jade Edge */
+    .tile {
+      perspective: 1000px;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .tile-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 0.4rem;
+      background: linear-gradient(145deg, #ffffff 0%, #f5efe0 80%, #e6d3a7 100%);
+      border-top: 1px solid #ffffff;
+      border-left: 1px solid #ffffff;
+      border-right: 2px solid #b39b69;
+      border-bottom: 4px solid #10382b;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.5), inset 0 -2px 4px rgba(0,0,0,0.15);
+      transition: all 0.2s ease;
+    }
+    
+    .tile:hover .tile-inner {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 18px rgba(0,0,0,0.6), 0 0 12px rgba(212,175,55,0.4);
+    }
+
+    .tile.selected .tile-inner {
+      transform: translateY(-12px) scale(1.05);
+      background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%) !important;
+      border-color: #f59e0b !important;
+      box-shadow: 0 14px 20px rgba(0,0,0,0.7), 0 0 20px rgba(245,158,11,0.8) !important;
+    }
+
+    .tile-locked .tile-inner {
+      background: linear-gradient(145deg, #fef9c3 0%, #fde047 100%) !important;
+      border: 2px solid #ca8a04 !important;
+      border-bottom: 4px solid #854d0e !important;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4) !important;
+    }
+
+    .order-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 11px;
+      width: 20px;
+      height: 20px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #ffffff;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+      z-index: 20;
+    }
+
+    .gold-text {
+      background: linear-gradient(135deg, #fef08a 0%, #f59e0b 50%, #b45309 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+    }
+
+    .gold-button {
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      border: 1px solid #fef08a;
+      box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4), inset 0 1px 0 rgba(255,255,255,0.4);
+    }
+    .gold-button:hover {
+      background: linear-gradient(135deg, #fcd34d 0%, #b45309 100%);
+    }
+
+    @keyframes lightning-flash {
+      0% { opacity: 0; background: rgba(255,255,255,0); }
+      15% { opacity: 1; background: rgba(255,255,255,0.95); }
+      30% { opacity: 0.2; background: rgba(245,158,11,0.2); }
+      45% { opacity: 1; background: rgba(16, 185, 129, 0.9); }
+      100% { opacity: 0; background: rgba(0,0,0,0); }
+    }
+    .lightning-effect {
+      animation: lightning-flash 0.65s ease-out forwards;
+    }
+
+    @keyframes cutin-zoom {
+      0% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
+      70% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .cutin-text {
+      animation: cutin-zoom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      font-family: 'Shippori Mincho', serif;
+      text-shadow: 0 0 30px rgba(245, 158, 11, 0.9), 4px 4px 0px #000;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+    ::-webkit-scrollbar-thumb { background: #d97706; border-radius: 4px; }
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <!-- ロビー画面 -->
-    <section id="lobby" class="card" style="max-width:450px; margin: 40px auto;">
-      <h1 style="color:var(--gold); margin:0 0 10px 0;">🀄 ひらジャン</h1>
-      <input id="name" maxlength="10" placeholder="あなたの名前" style="padding:8px; width:80%; text-align:center; margin-bottom:12px;"><br>
-      <button class="primary" id="create" style="width:80%; margin-bottom:10px;">部屋を作る (ホスト)</button>
-      <div id="roomWait" class="hidden" style="margin-top:15px; border-top:1px solid #333; padding-top:15px;"></div>
-    </section>
+<body class="flex flex-col justify-between items-center relative overflow-hidden h-screen bg-slate-950">
 
-    <!-- 対局画面 -->
-    <section id="game" class="hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center; background:#0f1712; padding:8px 12px; border-radius:6px; border:1px solid #2e7d32;">
-        <div><b>部屋:</b> <span id="codeView" style="color:var(--gold);"></span></div>
-        <div id="turnView" style="color:var(--gold); font-weight:bold;"></div>
-        <button id="leave" class="danger" style="padding:4px 8px; font-size:12px;">退出</button>
-      </div>
+  <!-- Lightning FX Layer -->
+  <div id="lightning-overlay" class="pointer-events-none fixed inset-0 z-50 opacity-0"></div>
 
-      <div class="table-container">
-        <div class="table-felt">
-          <div id="seatTop" class="seat seat-top"></div>
-          <div id="seatLeft" class="seat seat-left"></div>
-          <div class="center-board">
-            <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--gold);">
-              <span>山札: <span id="wallCount">0</span>枚</span>
-              <span id="lastAction"></span>
-            </div>
-            <div class="river-area" id="river"></div>
-          </div>
-          <div id="seatRight" class="seat seat-right"></div>
-          <div id="seatBottom" class="seat seat-bottom"></div>
+  <!-- START / LOBBY SCREEN -->
+  <div id="start-screen" class="fixed inset-0 z-40 bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-950 flex flex-col items-center justify-center p-4">
+    <div class="max-w-lg w-full bg-slate-900/95 border-2 border-amber-500/60 p-6 md:p-8 rounded-3xl shadow-2xl backdrop-blur-2xl flex flex-col items-center text-center relative overflow-hidden">
+      
+      <div class="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
+
+      <div class="mb-4 relative">
+        <div class="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3.5 py-1 rounded-full mb-2">
+          <i class="fa-solid fa-crown text-amber-400 text-xs"></i>
+          <span class="text-xs font-bold text-amber-300 tracking-wider">最高峰 言葉合わせ麻雀</span>
         </div>
+        <h1 class="text-3xl md:text-5xl font-black italic tracking-wider gold-text my-1">
+          🀄 極・ひらがな麻雀
+        </h1>
+        <p class="text-xs text-slate-300 mt-1">2文字（アタマ）×1 ＋ 3文字（面子）×4 ＝ 計14文字で半荘勝負！</p>
       </div>
 
-      <div class="hand-container">
-        <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--gold);">
-          <span>あなたの手牌（ドラッグで移動 / 2回クリックで濁音化）</span>
-        </div>
-        <div id="hand" class="hand-tiles"></div>
-        <div id="completeHint" class="complete-hint hidden"></div>
-        <div id="actions" style="display:flex; gap:10px; justify-content:center; margin-top:10px;"></div>
+      <div class="w-full mb-3 text-left">
+        <label class="block text-xs font-bold text-amber-200/90 mb-1 flex items-center justify-between">
+          <span><i class="fa-solid fa-user text-amber-400 mr-1"></i> プレイヤー名</span>
+          <span class="text-[10px] text-emerald-400 font-mono font-bold" id="p2p-status-badge">📡 準備完了</span>
+        </label>
+        <input type="text" id="input-player-name" class="w-full px-4 py-3 bg-slate-800/90 border border-amber-500/40 rounded-xl focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 outline-none font-bold text-slate-100 text-sm shadow-inner" value="あなた" />
       </div>
-    </section>
+
+      <div class="w-full mb-5 text-left bg-slate-950/60 p-3.5 rounded-2xl border border-amber-500/30">
+        <label class="block text-xs font-bold text-amber-200/90 mb-1 flex items-center justify-between">
+          <span><i class="fa-solid fa-key text-amber-400 mr-1"></i> 対戦部屋コード（友達と通信）</span>
+          <span class="text-[10px] text-amber-300">※同じコードで合流</span>
+        </label>
+        <div class="flex gap-2">
+          <input type="text" id="input-room-code" class="flex-1 px-4 py-2.5 bg-slate-800/90 border border-amber-500/40 rounded-xl focus:border-amber-400 outline-none font-mono text-center text-lg font-black tracking-widest text-amber-300 uppercase shadow-inner" placeholder="例: MAHJONG7" />
+          <button id="btn-generate-code" class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl border border-amber-500/40 text-xs font-bold transition flex items-center gap-1 shadow">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>自動</span>
+          </button>
+          <button id="btn-copy-code" class="px-3 py-2.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-xl border border-amber-500/40 text-xs font-bold transition flex items-center gap-1 shadow">
+            <i class="fa-solid fa-copy"></i>
+            <span>コード</span>
+          </button>
+          <button id="btn-copy-link" class="px-3 py-2.5 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 rounded-xl border border-emerald-500/40 text-xs font-bold transition flex items-center gap-1 shadow">
+            <i class="fa-solid fa-share-nodes"></i>
+            <span>招待URL</span>
+          </button>
+        </div>
+        <div id="copy-notify-text" class="text-[11px] text-emerald-400 font-bold hidden mt-1.5">
+          <i class="fa-solid fa-circle-check"></i> <span id="copy-notify-msg">部屋コードをコピーしました！</span>
+        </div>
+        <p class="text-[11px] text-cyan-300 mt-2 flex items-start gap-1">
+          <i class="fa-solid fa-globe mt-0.5"></i>
+          <span>GitHub Pages等に公開すると、<strong>「招待URL」をLINE等で共有するだけ</strong>で簡単に友達を対戦部屋に招待できます！</span>
+        </p>
+      </div>
+
+      <div class="w-full space-y-3">
+        <button id="btn-start-multi" class="w-full py-3.5 gold-button text-slate-950 font-black text-base md:text-lg rounded-2xl transform active:scale-95 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-users text-lg"></i>
+          <span>友達と対戦部屋に入る（P2P通信）</span>
+        </button>
+
+        <button id="btn-start-solo" class="w-full py-3 bg-slate-800/90 hover:bg-slate-700 text-slate-200 font-bold text-sm rounded-2xl border border-slate-700 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-robot text-amber-400"></i>
+          <span>ソロ対局スタート（CPU 3人）</span>
+        </button>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex justify-between w-full items-center">
+        <span><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> 東場・南場 半荘戦</span>
+        <button id="open-dict-lobby-btn" class="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+          <i class="fa-solid fa-book-open"></i>
+          <span>語彙図鑑</span>
+        </button>
+      </div>
+    </div>
   </div>
 
+  <!-- Challenge Ron Verdict Modal -->
+  <div id="verdict-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md hidden p-4">
+    <div class="bg-slate-900 border-2 border-amber-400 p-6 rounded-3xl max-w-lg w-full shadow-2xl text-center relative text-white">
+      <div class="text-amber-400 font-extrabold text-xs mb-1 tracking-widest uppercase flex items-center justify-center gap-1">
+        <i class="fa-solid fa-gavel"></i> 新語チャレンジ審議
+      </div>
+      <h3 class="text-2xl font-black mb-2 gold-text">この上がり言葉を承認しますか？</h3>
+      <p class="text-xs text-slate-300 mb-3">
+        辞書未登録の言葉が含まれています。実在する日本語であれば「承認」してアガリを確定しましょう！
+      </p>
+
+      <div id="verdict-word-list" class="flex flex-wrap justify-center gap-2 my-3 p-3 bg-slate-800/80 rounded-2xl border border-slate-700"></div>
+
+      <div class="flex gap-3 mt-4">
+        <button id="btn-verdict-approve" class="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 font-black text-base rounded-xl shadow-lg transition transform active:scale-95 text-white flex items-center justify-center gap-2">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>実在する！（承認）</span>
+        </button>
+        <button id="btn-verdict-reject" class="px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl border border-slate-700 transition">
+          ❌ 存在しない
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cutin Modal -->
+  <div id="cutin-modal" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md hidden p-4">
+    <div id="cutin-title" class="text-7xl md:text-9xl font-black italic gold-text cutin-text mb-2 tracking-wider">
+      ロン！
+    </div>
+    <div id="cutin-subtitle" class="text-base md:text-xl font-bold text-emerald-300 mb-4 text-center"></div>
+    <div id="cutin-words" class="flex flex-wrap justify-center gap-2 max-w-2xl mb-6 p-4 bg-slate-900/90 rounded-2xl border-2 border-amber-400 shadow-2xl"></div>
+    <button id="cutin-close-btn" class="px-8 py-3.5 gold-button text-slate-950 font-extrabold text-lg rounded-full shadow-2xl transform hover:scale-105 transition active:scale-95 flex items-center gap-2">
+      <span>次局へ進む</span>
+      <i class="fa-solid fa-arrow-right"></i>
+    </button>
+  </div>
+
+  <!-- Match End / Standings Podium Modal -->
+  <div id="match-end-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md hidden p-4">
+    <div class="bg-slate-900 border-2 border-amber-400 p-6 rounded-3xl max-w-md w-full shadow-2xl text-center relative text-white flex flex-col items-center">
+      <div class="text-amber-400 font-black text-sm tracking-widest uppercase mb-1 flex items-center gap-1">
+        <i class="fa-solid fa-trophy text-amber-400"></i> 半荘戦 最終結果
+      </div>
+      <h2 class="text-3xl font-black gold-text mb-4">
+        勝者決定！
+      </h2>
+
+      <div id="standings-list" class="w-full space-y-2 mb-6"></div>
+
+      <button id="btn-rematch" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 text-white font-black text-lg rounded-2xl shadow-xl transform active:scale-95 transition flex items-center justify-center gap-2 border border-emerald-300">
+        <i class="fa-solid fa-rotate-right"></i>
+        <span>もう一度遊ぶ（再戦）</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Dictionary Modal -->
+  <div id="dict-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
+    <div class="bg-slate-900 border-2 border-emerald-500/50 p-6 rounded-3xl max-w-lg w-full shadow-2xl relative text-slate-100 max-h-[80vh] flex flex-col">
+      <button id="close-dict-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 class="text-xl font-black text-emerald-400 mb-1 flex items-center gap-2">
+        <i class="fa-solid fa-book-bookmark"></i> 習得語彙・記憶図鑑
+      </h3>
+      <p class="text-xs text-slate-300 mb-3">上がった言葉が自動保存され、対局中の「待ち文字計算」に活用されます。</p>
+
+      <div class="flex gap-2 mb-3">
+        <span class="text-xs bg-slate-800 px-3 py-1 rounded-full text-amber-300 border border-slate-700">
+          2文字: <strong id="dict-count-2">0</strong> 個
+        </span>
+        <span class="text-xs bg-slate-800 px-3 py-1 rounded-full text-cyan-300 border border-slate-700">
+          3文字: <strong id="dict-count-3">0</strong> 個
+        </span>
+      </div>
+
+      <div id="dict-words-container" class="flex-1 overflow-y-auto pr-1 space-y-3"></div>
+    </div>
+  </div>
+
+  <!-- MAIN GAME HEADER -->
+  <header class="w-full max-w-5xl px-4 py-2 flex justify-between items-center z-10 bg-slate-900/90 backdrop-blur-md border-b border-amber-500/30 shrink-0 shadow-lg">
+    <div class="flex items-center gap-3">
+      <button id="btn-back-lobby" class="text-slate-300 hover:text-white text-xs bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-1.5 font-bold transition">
+        <i class="fa-solid fa-house text-amber-400"></i>
+        <span>ロビー</span>
+      </button>
+      <div class="font-black text-amber-400 text-sm hidden sm:block gold-text tracking-wider">🀄 極・ひらがな麻雀</div>
+      <span id="room-display-game" class="text-xs text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30 font-mono font-bold flex items-center gap-1">
+        <i class="fa-solid fa-wifi text-[10px] text-emerald-400"></i> SOLO
+      </span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button id="open-dict-game-btn" class="px-3 py-1.5 bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow border border-emerald-500/40 transition">
+        <i class="fa-solid fa-book"></i>
+        <span>語彙図鑑 (<span id="dict-count-badge">0</span>)</span>
+      </button>
+
+      <button id="sound-toggle-btn" class="px-3 py-1.5 bg-slate-800 text-yellow-400 rounded-xl border border-slate-700 text-xs flex items-center gap-1 shadow transition">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN GAME BOARD (LUXURY MAHJONG TABLE) -->
+  <main class="w-full max-w-5xl flex-1 flex flex-col justify-between px-2 py-1.5 relative z-0 overflow-hidden mahjong-table rounded-2xl my-1">
+    
+    <!-- TOP OPPONENT (North) -->
+    <div class="flex flex-col items-center w-full shrink-0">
+      <div id="player-2-card" class="flex items-center gap-2 bg-slate-900/90 px-3 py-1 rounded-full border border-amber-500/40 text-xs shadow-md">
+        <span class="w-2.5 h-2.5 rounded-full bg-slate-500" id="p2-turn-dot"></span>
+        <span class="font-bold text-slate-200" id="p2-name">CPU 北</span>
+        <span class="text-[10px] bg-amber-500/30 text-amber-200 px-1.5 py-0.2 rounded font-bold hidden" id="p2-dealer-badge">親</span>
+        <span class="text-amber-400 font-extrabold" id="p2-score">25000点</span>
+      </div>
+      <div id="p2-discards" class="flex flex-wrap justify-center gap-1 max-w-md my-1 min-h-[28px]"></div>
+    </div>
+
+    <!-- MIDDLE AREA -->
+    <div class="flex justify-between items-center w-full my-auto py-1">
+      <!-- LEFT OPPONENT (West) -->
+      <div class="flex flex-col items-start w-20 sm:w-28 shrink-0">
+        <div id="player-3-card" class="flex items-center gap-1 bg-slate-900/90 px-2.5 py-1 rounded-full border border-amber-500/40 text-[11px] mb-1 shadow-md">
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-500" id="p3-turn-dot"></span>
+          <span class="font-bold text-slate-200 truncate" id="p3-name">CPU 西</span>
+          <span class="text-[9px] bg-amber-500/30 text-amber-200 px-1 rounded font-bold hidden" id="p3-dealer-badge">親</span>
+        </div>
+        <div class="text-[11px] text-amber-400 font-extrabold mb-1" id="p3-score">25000点</div>
+        <div id="p3-discards" class="flex flex-wrap gap-1 max-w-[80px] min-h-[40px]"></div>
+      </div>
+
+      <!-- CENTER TABLE AREA -->
+      <div class="flex flex-col items-center justify-center bg-slate-950/90 border-2 border-amber-500/50 p-3 rounded-2xl shadow-2xl relative max-w-xs w-full mx-1 backdrop-blur-md">
+        <div class="flex justify-between items-center w-full mb-1.5 text-xs font-bold text-slate-300 border-b border-amber-500/20 pb-1">
+          <span id="game-round-text" class="gold-text font-black text-sm">東 1 局</span>
+          <span id="deck-count-text" class="text-cyan-300 flex items-center gap-1"><i class="fa-solid fa-layer-group text-amber-400"></i> 山札: 70牌</span>
+        </div>
+
+        <!-- Dora Display & Tenpai Waiting Display -->
+        <div class="flex items-center justify-between w-full my-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-amber-300">ドラ表示:</span>
+            <div id="dora-tile" class="w-8 h-10 bg-gradient-to-b from-amber-100 to-amber-200 border-2 border-amber-400 rounded-lg flex items-center justify-center font-black text-xl text-slate-900 shadow-md">
+              あ
+            </div>
+          </div>
+
+          <!-- Tenpai Waiting Badge Container -->
+          <div id="tenpai-display-container" class="hidden flex flex-col items-end">
+            <span class="text-[11px] font-black text-yellow-300 animate-pulse flex items-center gap-1"><i class="fa-solid fa-crosshair"></i> テンパイ！</span>
+            <div class="flex items-center gap-1 mt-0.5">
+              <span class="text-[10px] text-slate-300">待ち:</span>
+              <div id="waiting-tiles-list" class="flex gap-1 overflow-x-auto max-w-[130px]"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="table-status-msg" class="text-[11px] text-center text-emerald-300 font-bold h-5 flex items-center justify-center mt-1">
+          手牌をタップ順に選択して「固定」できます。
+        </div>
+
+        <!-- Ron / Tsumo Action Buttons -->
+        <div id="action-buttons-container" class="flex gap-2 mt-1.5">
+          <button id="btn-ron" class="hidden px-5 py-2 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-500 text-white font-black text-sm rounded-xl shadow-xl border-2 border-yellow-300 animate-bounce flex items-center gap-1">
+            <i class="fa-solid fa-bolt"></i>
+            <span>ロン！！</span>
+          </button>
+          <button id="btn-tsumo" class="hidden px-6 py-2 gold-button text-slate-950 font-black text-base rounded-xl shadow-2xl border-2 border-white animate-bounce flex items-center gap-1">
+            <i class="fa-solid fa-star"></i>
+            <span>ツモ！！</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT OPPONENT (East) -->
+      <div class="flex flex-col items-end w-20 sm:w-28 shrink-0">
+        <div id="player-1-card" class="flex items-center gap-1 bg-slate-900/90 px-2.5 py-1 rounded-full border border-amber-500/40 text-[11px] mb-1 shadow-md">
+          <span class="text-[9px] bg-amber-500/30 text-amber-200 px-1 rounded font-bold hidden" id="p1-dealer-badge">親</span>
+          <span class="font-bold text-slate-200 truncate" id="p1-name">CPU 南</span>
+          <span class="w-2.5 h-2.5 rounded-full bg-slate-500" id="p1-turn-dot"></span>
+        </div>
+        <div class="text-[11px] text-amber-400 font-extrabold mb-1" id="p1-score">25000点</div>
+        <div id="p1-discards" class="flex flex-wrap justify-end gap-1 max-w-[80px] min-h-[40px]"></div>
+      </div>
+    </div>
+
+    <!-- USER HAND & CONTROL AREA -->
+    <div class="w-full flex flex-col items-center shrink-0">
+      <!-- Player Discards -->
+      <div id="p0-discards" class="flex flex-wrap justify-center gap-1 max-w-xl min-h-[28px] mb-1 bg-slate-950/60 p-1.5 rounded-xl border border-amber-500/20 backdrop-blur-sm"></div>
+
+      <!-- Controls Action Bar -->
+      <div class="flex items-center justify-between w-full px-1 mb-1.5 text-xs gap-1">
+        <div id="p0-card" class="bg-slate-900/90 text-amber-300 font-bold px-3 py-1.5 rounded-xl border border-amber-500/40 flex items-center gap-1.5 shrink-0 shadow-md">
+          <span class="w-2.5 h-2.5 rounded-full bg-green-400" id="p0-turn-dot"></span>
+          <span class="text-[10px] bg-amber-500/30 text-amber-200 px-1.5 py-0.2 rounded font-bold hidden" id="p0-dealer-badge">親</span>
+          <span id="p0-name" class="text-white font-bold">あなた</span>: <span id="p0-score" class="text-amber-400 font-extrabold">25000点</span>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <!-- Lock Selected Group Button -->
+          <button id="btn-lock-group" class="px-3 py-1.5 gold-button text-slate-950 font-black rounded-xl text-xs shadow-md flex items-center gap-1 transition disabled:opacity-30 disabled:pointer-events-none">
+            <i class="fa-solid fa-lock text-[11px]"></i>
+            <span>固定</span>
+          </button>
+
+          <!-- Transform Char Button -->
+          <button id="btn-transform-tile" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-yellow-300 rounded-xl border border-yellow-500/40 font-bold text-xs flex items-center gap-1 transition shadow-md disabled:opacity-30 disabled:pointer-events-none">
+            <i class="fa-solid fa-wand-magic-sparkles text-[11px]"></i>
+            <span>変形</span>
+          </button>
+
+          <!-- Discard Tile Button -->
+          <button id="btn-discard" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs shadow-md flex items-center gap-1 transition border border-rose-400/30 disabled:opacity-30 disabled:pointer-events-none">
+            <i class="fa-solid fa-hand-holding"></i>
+            <span>捨てる</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- HAND TILES CONTAINER -->
+      <div class="w-full bg-slate-950/80 p-2 rounded-2xl border border-amber-500/30 flex items-center gap-2 overflow-x-auto min-h-[82px] max-h-[92px] shadow-2xl backdrop-blur-md">
+        <!-- Locked Groups (Left side) -->
+        <div id="locked-groups-area" class="flex items-center gap-2 border-r border-amber-500/30 pr-2 shrink-0"></div>
+        
+        <!-- Free Tiles Area (Right side) -->
+        <div id="free-tiles-area" class="flex items-center gap-1.5 flex-1"></div>
+      </div>
+    </div>
+  </main>
+
   <script>
-    const BASE = [...'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'];
-    const WORDS = (window.MAHJONG_WORDS || ["あい","あお"]).filter(w => w.length === 2 || w.length === 3);
+    let currentUserId = 'user_' + Math.random().toString(36).substr(2, 6);
 
-    const TRANS = {
-      'あ':['あ','ぁ'],'い':['い','ぃ'],'う':['う','ぅ','ゔ'],'え':['え','ぇ'],'お':['お','ぉ'],
-      'か':['か','が'],'き':['き','ぎ'],'く':['く','ぐ'],'け':['け','げ'],'こ':['こ','ご'],
-      'さ':['さ','ざ'],'し':['し','じ'],'す':['す','ず'],'せ':['せ','ぜ'],'そ':['そ','ぞ'],
-      'た':['た','だ'],'ち':['ち','ぢ'],'つ':['つ','づ','っ'],'て':['て','で'],'と':['と','ど'],
-      'は':['は','ば','ぱ'],'ひ':['ひ','び','ぴ'],'ふ':['ふ','ぶ','ぷ'],'へ':['へ','べ','ぺ'],'ほ':['ほ','ぼ','ぽ'],
-      'や':['や','ゃ'],'ゆ':['ゆ','ゅ'],'よ':['よ','ょ'],'わ':['わ','ゎ']
+    // Sound Synthesizer Engine
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      }
+      playClick() {
+        if (this.muted) return;
+        this.init(); if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.05);
+      }
+      playTileDraw() {
+        if (this.muted) return;
+        this.init(); if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.07);
+        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.07);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.07);
+      }
+      playDiscard() {
+        if (this.muted) return;
+        this.init(); if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.06);
+        gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.06);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.06);
+      }
+      playLock() {
+        if (this.muted) return;
+        this.init(); if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, this.ctx.currentTime);
+        osc.frequency.setValueAtTime(1046.50, this.ctx.currentTime + 0.06);
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.12);
+      }
+      playLightning() {
+        if (this.muted) return;
+        this.init(); if (!this.ctx) return;
+        const bufferSize = this.ctx.sampleRate * 0.5;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.45);
+        noise.connect(gain); gain.connect(this.ctx.destination);
+        noise.start();
+      }
+      playFanfare() {
+        if (this.muted) return;
+        this.init(); if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
+          gain.gain.setValueAtTime(0.25, this.ctx.currentTime + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.08 + 0.3);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + idx * 0.08);
+          osc.stop(this.ctx.currentTime + idx * 0.08 + 0.3);
+        });
+      }
+    }
+
+    const SE = new SoundEngine();
+
+    const CHAR_TRANSFORMS = {
+      'あ': 'ぁ', 'ぁ': 'あ', 'い': 'ぃ', 'ぃ': 'い', 'う': 'ぅ', 'ぅ': 'ゔ', 'ゔ': 'う',
+      'え': 'ぇ', 'ぇ': 'え', 'お': 'ぉ', 'ぉ': 'お', 'か': 'が', 'が': 'か',
+      'き': 'ぎ', 'ぎ': 'き', 'く': 'ぐ', 'ぐ': 'く', 'け': 'げ', 'げ': 'け',
+      'こ': 'ご', 'ご': 'こ', 'さ': 'ざ', 'ざ': 'さ', 'し': 'じ', 'じ': 'し',
+      'す': 'ず', 'ず': 'す', 'せ': 'ぜ', 'ぜ': 'せ', 'そ': 'ぞ', 'ぞ': 'そ',
+      'た': 'だ', 'だ': 'た', 'ち': 'ぢ', 'ぢ': 'ち', 'つ': 'っ', 'っ': 'づ', 'づ': 'つ',
+      'て': 'で', 'で': 'て', 'と': 'ど', 'ど': 'と', 'は': 'ば', 'ば': 'ぱ', 'ぱ': 'は',
+      'ひ': 'び', 'び': 'ぴ', 'ぴ': 'ひ', 'ふ': 'ぶ', 'ぶ': 'ぷ', 'ぷ': 'ふ',
+      'へ': 'べ', 'べ': 'ぺ', 'ぺ': 'へ', 'ほ': 'ぼ', 'ぼ': 'ぽ', 'ぽ': 'ほ',
+      'や': 'ゃ', 'ゃ': 'や', 'ゆ': 'ゅ', 'ゅ': 'ゆ', 'よ': 'ょ', 'ょ': 'よ'
     };
-    const CYCLE = {};
-    Object.entries(TRANS).forEach(([b, arr]) => arr.forEach((x, i) => CYCLE[x] = arr[(i + 1) % arr.length]));
 
-    let S = null, selected = null, dragIndex = null;
-    const $ = id => document.getElementById(id);
+    const DEFAULT_WORDS_2 = [
+      "いぬ", "ねこ", "さる", "きじ", "うし", "うま", "とり", "かめ", "たこ", "いか",
+      "えび", "くり", "かき", "なす", "まめ", "ごま", "あめ", "もち", "すし", "りす",
+      "やま", "かわ", "うみ", "そら", "はな", "きく", "ゆき", "かぜ", "にし", "きた",
+      "ひがし", "みなみ", "あさ", "ひる", "よる", "あき", "ふゆ", "はる", "なつ", "たた"
+    ];
 
-    function makeWall() {
-      const wall = [];
-      for (const c of BASE) for (let i = 0; i < 4; i++) wall.push(c);
-      return wall.sort(() => Math.random() - 0.5);
+    const DEFAULT_WORDS_3 = [
+      "きりん", "うさぎ", "きつね", "たぬき", "くじら", "いるか", "すずめ", "からす",
+      "ほたる", "とんぼ", "さくら", "もみじ", "つばき", "りんご", "みかん", "いちご",
+      "ぶどう", "すいか", "とまと", "おでん", "けーき", "だんご", "ぷりん", "あいす",
+      "さかな", "まぐろ", "さんま", "くるま", "つくえ", "とけい", "めがね", "かめら",
+      "てれび", "すまほ", "あにめ", "まんが", "らじお", "ばすけ", "さっか", "やきゅう"
+    ];
+
+    class VocabularyStore {
+      constructor() {
+        this.words2 = new Set(DEFAULT_WORDS_2);
+        this.words3 = new Set(DEFAULT_WORDS_3);
+        this.load();
+      }
+      load() {
+        try {
+          const saved2 = localStorage.getItem('hiragana_mahjong_dict_2_v6');
+          const saved3 = localStorage.getItem('hiragana_mahjong_dict_3_v6');
+          if (saved2) JSON.parse(saved2).filter(w => w.length === 2).forEach(w => this.words2.add(w));
+          if (saved3) JSON.parse(saved3).filter(w => w.length === 3).forEach(w => this.words3.add(w));
+        } catch(e) { console.log(e); }
+      }
+      save() {
+        try {
+          localStorage.setItem('hiragana_mahjong_dict_2_v6', JSON.stringify(Array.from(this.words2)));
+          localStorage.setItem('hiragana_mahjong_dict_3_v6', JSON.stringify(Array.from(this.words3)));
+        } catch(e) { console.log(e); }
+      }
+      addWord(word) {
+        if (!word) return;
+        if (word.length === 2) this.words2.add(word);
+        if (word.length === 3) this.words3.add(word);
+        this.save();
+      }
+      hasWord2(word) { return this.words2.has(word); }
+      hasWord3(word) { return this.words3.has(word); }
     }
 
-    function checkWords(hand) {
-      const str = hand.join('');
-      return WORDS.filter(w => str.includes(w));
-    }
+    const dictStore = new VocabularyStore();
+    const HIRAGANA_BASE = ["あ","い","う","え","お","か","き","く","け","こ","さ","し","す","せ","そ","た","ち","つ","て","と","な","に","ぬ","ね","の","は","ひ","ふ","へ","ほ","ま","み","む","め","も","や","ゆ","よ","ら","り","る","れ","ろ","わ","ん"];
 
-    function addBot() {
-      if (!S || S.players.length >= 4) return;
-      const botNum = S.players.filter(p => p.isBot).length + 1;
-      S.players.push({ id: 'bot_' + botNum, name: 'CPU ' + botNum, isBot: true });
-      updateLobbyWait();
-    }
-
-    function updateLobbyWait() {
-      $('roomWait').innerHTML = `
-        <p>参加メンバー (${S.players.length}/4人):<br><b>${S.players.map(p => p.name).join(', ')}</b></p>
-        <button onclick="addBot()" ${S.players.length >= 4 ? 'disabled' : ''}>+ Bot(CP)を追加</button>
-        <button class="primary" onclick="startGame()">対局開始</button>
-      `;
-    }
-
-    $('create').onclick = () => {
-      S = { players: [{ id: 'me', name: $('name').value || 'あなた', isBot: false }], started: false };
-      $('roomWait').classList.remove('hidden');
-      updateLobbyWait();
-    };
-
-    function startGame() {
-      S.started = true;
-      S.wall = makeWall();
-      S.current = 0;
-      S.discards = [];
-      S.hands = {};
-      S.players.forEach(p => {
-        S.hands[p.id] = S.wall.splice(0, 13);
-      });
-      // 最初の親のツモ
-      S.hands[S.players[0].id].push(S.wall.pop());
-      S.drawn = true;
-      render();
-
-      if (S.players[S.current].isBot) processBotTurn();
-    }
-
-    function render() {
-      $('lobby').classList.add('hidden');$('game').classList.remove('hidden');
-
-      $('wallCount').textContent = S.wall.length;
-      const curP = S.players[S.current];
-      $('turnView').textContent = `手番: ${curP.name}`;
-
-      // 席の配置
-      const p = S.players;
-      $('seatBottom').innerHTML = `<b>${p[0]?.name||''}</b>` + (S.current === 0 ? ' (手番)' : '');
-      $('seatTop').innerHTML = p[1] ? `<b>${p[1].name}</b>` + (S.current === 1 ? ' (手番)' : '') : '空席';
-      $('seatLeft').innerHTML = p[2] ? `<b>${p[2].name}</b>` + (S.current === 2 ? ' (手番)' : '') : '空席';
-      $('seatRight').innerHTML = p[3] ? `<b>${p[3].name}</b>` + (S.current === 3 ? ' (手番)' : '') : '空席';
-
-      // 河
-      $('river').innerHTML = S.discards.map(d => `<div class="tile tile-river">${d.tile}</div>`).join('');
-
-      // 自分の手牌
-      const myHand = S.hands['me'] || [];
-      const handEl = $('hand');
-      handEl.innerHTML = '';
-      myHand.forEach((x, i) => {
-        const tile = document.createElement('div');
-        tile.className = `tile ${selected === i ? 'selected' : ''}`;
-        tile.textContent = x;
-        tile.draggable = true;
-
-        // ドラッグ＆ドロップ処理
-        tile.ondragstart = (e) => { dragIndex = i; tile.classList.add('dragging'); };
-        tile.ondragover = (e) => e.preventDefault();
-        tile.ondrop = (e) => {
-          e.preventDefault();
-          if (dragIndex !== null && dragIndex !== i) {
-            const item = myHand.splice(dragIndex, 1)[0];
-            myHand.splice(i, 0, item);
-            selected = null;
-            render();
-          }
-        };
-        tile.onclick = () => tileClick(i);
-        handEl.appendChild(tile);
-      });
-
-      // 完成通知
-      const completed = checkWords(myHand);
-      const hint = $('completeHint');
-      if (completed.length > 0) {
-        hint.classList.remove('hidden');
-        hint.innerHTML = `💡 完成中の言葉: <b>${completed.slice(0, 5).join('、')}</b>`;
-      } else {
-        hint.classList.add('hidden');
+    class P2PNetwork {
+      constructor() {
+        this.peer = null;
+        this.connections = [];
+        this.isHost = false;
+        this.roomCode = "";
       }
 
-      // ボタン制御
-      const actions = $('actions');
-      actions.innerHTML = '';
-      if (S.current === 0 && S.drawn) {
-        const b1 = document.createElement('button');
-        b1.textContent = '選択牌を捨てる';
-        b1.disabled = selected == null;
-        b1.onclick = discardTile;
-        actions.appendChild(b1);
+      initPeer(peerId = null) {
+        return new Promise((resolve, reject) => {
+          this.peer = peerId ? new Peer(peerId) : new Peer();
+          this.peer.on('open', (id) => {
+            console.log("My Peer ID:", id);
+            document.getElementById('p2p-status-badge').innerText = `📡 接続中 (${id.slice(0, 5)})`;
+            resolve(id);
+          });
+          this.peer.on('connection', (conn) => {
+            this.handleIncomingConnection(conn);
+          });
+          this.peer.on('error', (err) => {
+            console.warn("PeerJS error:", err);
+            reject(err);
+          });
+        });
+      }
 
-        if (completed.length > 0) {
-          const b2 = document.createElement('button');
-          b2.className = 'primary';
-          b2.textContent = 'ツモあがり！';
-          b2.onclick = () => alert('上がり！完成語: ' + completed.join(', '));
-          actions.appendChild(b2);
+      async hostRoom(code) {
+        this.roomCode = code.toUpperCase();
+        this.isHost = true;
+        const hostPeerId = `hiragana-mahjong-room-${this.roomCode}`;
+        
+        try {
+          await this.initPeer(hostPeerId);
+          return true;
+        } catch (err) {
+          // Room ID taken, host already exists -> Fallback to client
+          return false;
+        }
+      }
+
+      async joinRoom(code) {
+        this.roomCode = code.toUpperCase();
+        this.isHost = false;
+        await this.initPeer();
+
+        const hostPeerId = `hiragana-mahjong-room-${this.roomCode}`;
+        const conn = this.peer.connect(hostPeerId);
+
+        return new Promise((resolve) => {
+          conn.on('open', () => {
+            this.connections.push(conn);
+            this.setupConnectionEvents(conn);
+            conn.send({ type: 'JOIN_REQUEST', name: game.players[0].name, uid: currentUserId });
+            resolve(true);
+          });
+          setTimeout(() => resolve(false), 5000);
+        });
+      }
+
+      handleIncomingConnection(conn) {
+        this.connections.push(conn);
+        this.setupConnectionEvents(conn);
+      }
+
+      setupConnectionEvents(conn) {
+        conn.on('data', (data) => {
+          this.onReceiveData(data, conn);
+        });
+        conn.on('close', () => {
+          this.connections = this.connections.filter(c => c !== conn);
+        });
+      }
+
+      broadcast(data) {
+        this.connections.forEach(conn => {
+          if (conn.open) conn.send(data);
+        });
+      }
+
+      onReceiveData(data, conn) {
+        if (data.type === 'JOIN_REQUEST') {
+          if (this.isHost) {
+            let emptyIndex = game.players.findIndex((p, idx) => idx > 0 && p.isCpu);
+            if (emptyIndex !== -1) {
+              game.players[emptyIndex] = {
+                name: data.name,
+                score: 25000,
+                lockedGroups: [],
+                freeHand: [],
+                discards: [],
+                isCpu: false,
+                uid: data.uid
+              };
+              conn.send({ type: 'SEAT_ASSIGNED', seatIndex: emptyIndex });
+              this.broadcastGameState();
+            }
+          }
+        } else if (data.type === 'SEAT_ASSIGNED') {
+          game.myPlayerIndex = data.seatIndex;
+          renderUI();
+        } else if (data.type === 'GAME_STATE_SYNC') {
+          game.applyRemoteState(data.state);
+        } else if (data.type === 'DISCARD_ACTION') {
+          game.discardTile(data.playerIndex, data.tileIndex);
+          if (this.isHost) this.broadcastGameState();
+        }
+      }
+
+      broadcastGameState() {
+        if (this.isHost) {
+          const state = {
+            deck: game.deck,
+            dora: game.dora,
+            turnIndex: game.turnIndex,
+            wind: game.wind,
+            roundNum: game.roundNum,
+            dealerIndex: game.dealerIndex,
+            lastDiscardedTile: game.lastDiscardedTile,
+            lastDiscarderIndex: game.lastDiscarderIndex,
+            players: game.players.map(p => ({
+              name: p.name,
+              score: p.score,
+              lockedGroups: p.lockedGroups,
+              freeHand: p.freeHand,
+              discards: p.discards,
+              isCpu: p.isCpu,
+              uid: p.uid
+            }))
+          };
+          this.broadcast({ type: 'GAME_STATE_SYNC', state });
         }
       }
     }
 
-    function tileClick(i) {
-      const myHand = S.hands['me'];
-      if (selected === i && CYCLE[myHand[i]]) {
-        myHand[i] = CYCLE[myHand[i]];
+    const net = new P2PNetwork();
+
+    class HiraganaMahjongGame {
+      constructor() {
+        this.roomCode = "SOLO";
+        this.myPlayerIndex = 0;
+        this.turnIndex = 0;
+        this.deck = [];
+        this.dora = "あ";
+        this.selectedTileIndices = [];
+
+        this.wind = "東";
+        this.roundNum = 1;
+        this.dealerIndex = 0;
+
+        this.players = [
+          { name: "あなた", score: 25000, lockedGroups: [], freeHand: [], discards: [], isCpu: false, uid: currentUserId },
+          { name: "CPU 東", score: 25000, lockedGroups: [], freeHand: [], discards: [], isCpu: true, uid: 'cpu1' },
+          { name: "CPU 北", score: 25000, lockedGroups: [], freeHand: [], discards: [], isCpu: true, uid: 'cpu2' },
+          { name: "CPU 西", score: 25000, lockedGroups: [], freeHand: [], discards: [], isCpu: true, uid: 'cpu3' }
+        ];
+
+        this.lastDiscardedTile = null;
+        this.lastDiscarderIndex = -1;
+        this.gameStatus = "WAITING";
+        this.pendingVerdict = null;
+        this.waitingChars = [];
+      }
+
+      generateDeck() {
+        let pool = [];
+        HIRAGANA_BASE.forEach(char => pool.push(char, char, char));
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        return pool;
+      }
+
+      resetMatch() {
+        this.wind = "東";
+        this.roundNum = 1;
+        this.dealerIndex = 0;
+        this.players.forEach(p => p.score = 25000);
+        this.startNewRound();
+      }
+
+      startNewRound() {
+        this.deck = this.generateDeck();
+        this.dora = this.deck.pop();
+        this.turnIndex = this.dealerIndex;
+        this.gameStatus = "PLAYING";
+        this.selectedTileIndices = [];
+        this.waitingChars = [];
+
+        for (let p = 0; p < 4; p++) {
+          this.players[p].lockedGroups = [];
+          this.players[p].freeHand = [];
+          this.players[p].discards = [];
+          for (let i = 0; i < 13; i++) {
+            this.players[p].freeHand.push({
+              id: `p${p}_${i}_${Math.random().toString(36).substr(2,4)}`,
+              char: this.deck.pop()
+            });
+          }
+        }
+
+        this.drawTile(this.turnIndex);
+        this.updateTenpaiState();
+        if (net.isHost) net.broadcastGameState();
+      }
+
+      drawTile(playerIdx) {
+        if (this.deck.length === 0) {
+          alert("【流局】山札がなくなりました！");
+          this.advanceRound(false);
+          return;
+        }
+        const drawnChar = this.deck.pop();
+        this.players[playerIdx].freeHand.push({
+          id: `draw_${Date.now()}_${Math.random()}`,
+          char: drawnChar
+        });
+
+        if (playerIdx === this.myPlayerIndex) {
+          SE.playTileDraw();
+          this.updateTenpaiState();
+        }
+      }
+
+      updateTenpaiState() {
+        this.waitingChars = [];
+        const p = this.players[this.myPlayerIndex];
+        const lockedWords = p.lockedGroups.map(g => g.word);
+        const lockedCount2 = lockedWords.filter(w => w.length === 2).length;
+        const lockedCount3 = lockedWords.filter(w => w.length === 3).length;
+
+        const freeChars = p.freeHand.map(t => t.char);
+        const totalLocked = p.lockedGroups.length;
+
+        if (totalLocked === 4) {
+          if (lockedCount3 === 3 && lockedCount2 === 1 && freeChars.length >= 2) {
+            const c1 = freeChars[0];
+            const c2 = freeChars[1];
+            
+            HIRAGANA_BASE.forEach(x => {
+              const perm1 = c1 + c2 + x;
+              const perm2 = c1 + x + c2;
+              const perm3 = x + c1 + c2;
+              if (dictStore.hasWord3(perm1) || dictStore.hasWord3(perm2) || dictStore.hasWord3(perm3)) {
+                if (!this.waitingChars.includes(x)) this.waitingChars.push(x);
+              }
+            });
+          } else if (lockedCount3 === 4 && lockedCount2 === 0 && freeChars.length >= 1) {
+            const c1 = freeChars[0];
+            HIRAGANA_BASE.forEach(x => {
+              const perm1 = c1 + x;
+              const perm2 = x + c1;
+              if (dictStore.hasWord2(perm1) || dictStore.hasWord2(perm2)) {
+                if (!this.waitingChars.includes(x)) this.waitingChars.push(x);
+              }
+            });
+          }
+        }
+      }
+
+      discardTile(playerIdx, freeHandTileIndex) {
+        const p = this.players[playerIdx];
+        if (freeHandTileIndex < 0 || freeHandTileIndex >= p.freeHand.length) return;
+        const discarded = p.freeHand.splice(freeHandTileIndex, 1)[0];
+        p.discards.push(discarded.char);
+        this.lastDiscardedTile = discarded.char;
+        this.lastDiscarderIndex = playerIdx;
+        SE.playDiscard();
+
+        if (playerIdx === this.myPlayerIndex) {
+          this.selectedTileIndices = [];
+          this.updateTenpaiState();
+        }
+
+        if (playerIdx !== this.myPlayerIndex) {
+          if (this.waitingChars.includes(discarded.char) || this.checkRonOpportunity(this.myPlayerIndex, discarded.char).canRon) {
+            document.getElementById('btn-ron').classList.remove('hidden');
+          }
+        }
+
+        setTimeout(() => {
+          if (this.gameStatus !== "PLAYING") return;
+          document.getElementById('btn-ron').classList.add('hidden');
+
+          this.turnIndex = (this.turnIndex + 1) % 4;
+          this.drawTile(this.turnIndex);
+
+          if (this.players[this.turnIndex].isCpu && (this.roomCode === 'SOLO' || net.isHost)) {
+            this.handleCpuTurn(this.turnIndex);
+          }
+          if (net.isHost) net.broadcastGameState();
+          renderUI();
+        }, 800);
+      }
+
+      lockSelectedTiles() {
+        if (this.selectedTileIndices.length !== 2 && this.selectedTileIndices.length !== 3) return;
+
+        const p = this.players[this.myPlayerIndex];
+        const selectedTileObjects = this.selectedTileIndices.map(idx => p.freeHand[idx]);
+        const word = selectedTileObjects.map(obj => obj.char).join('');
+
+        const sortedIndicesDesc = [...this.selectedTileIndices].sort((a,b) => b - a);
+        sortedIndicesDesc.forEach(idx => p.freeHand.splice(idx, 1));
+
+        p.lockedGroups.push({
+          word: word,
+          length: word.length,
+          tiles: selectedTileObjects
+        });
+
+        this.selectedTileIndices = [];
+        SE.playLock();
+        this.updateTenpaiState();
+        if (net.isHost) net.broadcastGameState();
+        renderUI();
+      }
+
+      unlockGroup(groupIndex) {
+        const p = this.players[this.myPlayerIndex];
+        if (groupIndex < 0 || groupIndex >= p.lockedGroups.length) return;
+        const group = p.lockedGroups.splice(groupIndex, 1)[0];
+        group.tiles.forEach(tileObj => p.freeHand.push(tileObj));
+        SE.playClick();
+        this.updateTenpaiState();
+        if (net.isHost) net.broadcastGameState();
+        renderUI();
+      }
+
+      handleCpuTurn(cpuIdx) {
+        setTimeout(() => {
+          if (this.gameStatus !== "PLAYING" || this.turnIndex !== cpuIdx) return;
+          const p = this.players[cpuIdx];
+
+          if (p.lockedGroups.length === 5) {
+            const words = p.lockedGroups.map(g => g.word);
+            const counts2 = words.filter(w => w.length === 2).length;
+            const counts3 = words.filter(w => w.length === 3).length;
+            if (counts2 === 1 && counts3 === 4) {
+              this.applyWinScores(cpuIdx, -1, 12000);
+              triggerCutin("ツモ！", `${p.name} のアガリ！`, { allWords: words });
+              return;
+            }
+          }
+
+          const discardIdx = Math.floor(Math.random() * p.freeHand.length);
+          this.discardTile(cpuIdx, discardIdx);
+          renderUI();
+        }, 900);
+      }
+
+      checkRonOpportunity(playerIdx, claimedChar) {
+        const p = this.players[playerIdx];
+        if (p.lockedGroups.length !== 4) return { canRon: false };
+
+        const lockedWords = p.lockedGroups.map(g => g.word);
+        const freeChars = [...p.freeHand.map(t => t.char), claimedChar];
+
+        const remainingWord = freeChars.join('');
+        if (remainingWord.length === 2 || remainingWord.length === 3) {
+          const allWords = [...lockedWords, remainingWord];
+          const sets3 = allWords.filter(w => w.length === 3);
+          const sets2 = allWords.filter(w => w.length === 2);
+
+          if (sets3.length === 4 && sets2.length === 1) {
+            const isWin = sets3.every(w => dictStore.hasWord3(w)) && sets2.every(w => dictStore.hasWord2(w));
+            return {
+              canRon: true,
+              evalRes: { isWin, isChallengeRon: !isWin, allWords }
+            };
+          }
+        }
+        return { canRon: false };
+      }
+
+      applyWinScores(winnerIdx, loserIdx, points) {
+        if (loserIdx >= 0) {
+          this.players[loserIdx].score -= points;
+          this.players[winnerIdx].score += points;
+        } else {
+          const eachPay = Math.floor(points / 3);
+          for (let p = 0; p < 4; p++) {
+            if (p !== winnerIdx) {
+              this.players[p].score -= eachPay;
+              this.players[winnerIdx].score += eachPay;
+            }
+          }
+        }
+        if (net.isHost) net.broadcastGameState();
+      }
+
+      advanceRound(isDealerWin) {
+        if (!isDealerWin) {
+          this.dealerIndex = (this.dealerIndex + 1) % 4;
+          if (this.dealerIndex === 0) {
+            if (this.wind === "東") {
+              this.wind = "南";
+              this.roundNum = 1;
+            } else {
+              this.endMatch();
+              return;
+            }
+          } else {
+            this.roundNum++;
+          }
+        }
+
+        if (this.roundNum > 4 && this.wind === "南") {
+          this.endMatch();
+        } else {
+          this.startNewRound();
+          renderUI();
+        }
+      }
+
+      endMatch() {
+        this.gameStatus = "ENDED";
+        const sorted = [...this.players].sort((a,b) => b.score - a.score);
+        const standingsContainer = document.getElementById('standings-list');
+        standingsContainer.innerHTML = '';
+
+        const ranks = ["🥇 1位", "🥈 2位", "🥉 3位", "4位"];
+        sorted.forEach((p, idx) => {
+          const row = document.createElement('div');
+          row.className = "flex justify-between items-center bg-slate-800/90 p-3.5 rounded-2xl border border-amber-500/30 font-bold text-sm shadow-md";
+          row.innerHTML = `
+            <span class="${idx === 0 ? 'text-amber-300 font-black text-base gold-text' : 'text-slate-200'}">${ranks[idx]} ${p.name}</span>
+            <span class="text-amber-400 font-black">${p.score} 点</span>
+          `;
+          standingsContainer.appendChild(row);
+        });
+
+        document.getElementById('match-end-modal').classList.remove('hidden');
+        if (net.isHost) net.broadcastGameState();
+      }
+
+      applyRemoteState(state) {
+        this.deck = state.deck;
+        this.dora = state.dora;
+        this.turnIndex = state.turnIndex;
+        this.wind = state.wind;
+        this.roundNum = state.roundNum;
+        this.dealerIndex = state.dealerIndex;
+        this.lastDiscardedTile = state.lastDiscardedTile;
+        this.lastDiscarderIndex = state.lastDiscarderIndex;
+        this.players = state.players;
+        this.updateTenpaiState();
+        renderUI();
+      }
+    }
+
+    const game = new HiraganaMahjongGame();
+
+    const startScreen = document.getElementById('start-screen');
+    const lockedGroupsArea = document.getElementById('locked-groups-area');
+    const freeTilesArea = document.getElementById('free-tiles-area');
+    const btnDiscard = document.getElementById('btn-discard');
+    const btnTransform = document.getElementById('btn-transform-tile');
+    const btnLockGroup = document.getElementById('btn-lock-group');
+    const btnTsumo = document.getElementById('btn-tsumo');
+    const btnRon = document.getElementById('btn-ron');
+    const soundToggleBtn = document.getElementById('sound-toggle-btn');
+    const openDictGameBtn = document.getElementById('open-dict-game-btn');
+    const openDictLobbyBtn = document.getElementById('open-dict-lobby-btn');
+    const closeDictBtn = document.getElementById('close-dict-modal-btn');
+    const dictModal = document.getElementById('dict-modal');
+    const cutinModal = document.getElementById('cutin-modal');
+    const cutinCloseBtn = document.getElementById('cutin-close-btn');
+    const verdictModal = document.getElementById('verdict-modal');
+    const btnVerdictApprove = document.getElementById('btn-verdict-approve');
+    const btnVerdictReject = document.getElementById('btn-verdict-reject');
+    const btnBackLobby = document.getElementById('btn-back-lobby');
+    const matchEndModal = document.getElementById('match-end-modal');
+    const btnRematch = document.getElementById('btn-rematch');
+
+    function renderUI() {
+      // Header & Table Status
+      document.getElementById('game-round-text').innerText = `${game.wind} ${game.roundNum} 局`;
+      document.getElementById('deck-count-text').innerHTML = `<i class="fa-solid fa-layer-group text-amber-400"></i> 山札: ${game.deck.length}牌`;
+      document.getElementById('dora-tile').innerText = game.dora;
+      document.getElementById('dict-count-badge').innerText = dictStore.words2.size + dictStore.words3.size;
+
+      // Tenpai Waiting Display
+      const tenpaiContainer = document.getElementById('tenpai-display-container');
+      const waitingList = document.getElementById('waiting-tiles-list');
+      if (game.waitingChars.length > 0) {
+        tenpaiContainer.classList.remove('hidden');
+        waitingList.innerHTML = '';
+        game.waitingChars.forEach(char => {
+          const badge = document.createElement('span');
+          badge.className = "px-2 py-0.5 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-black text-xs rounded-lg shadow border border-white";
+          badge.innerText = char;
+          waitingList.appendChild(badge);
+        });
       } else {
-        selected = i;
+        tenpaiContainer.classList.add('hidden');
       }
-      render();
-    }
 
-    function discardTile() {
-      if (selected == null) return;
-      const tile = S.hands['me'].splice(selected, 1)[0];
-      S.discards.push({ p: 'me', tile });
-      selected = null;
-      S.drawn = false;
-      nextTurn();
-    }
+      // Players Cards & Discards
+      for (let p = 0; p < 4; p++) {
+        const displaySeat = (p - game.myPlayerIndex + 4) % 4;
+        const dot = document.getElementById(`p${displaySeat}-turn-dot`);
+        const nameEl = document.getElementById(`p${displaySeat}-name`);
+        const scoreEl = document.getElementById(`p${displaySeat}-score`);
+        const dealerBadge = document.getElementById(`p${displaySeat}-dealer-badge`);
 
-    function nextTurn() {
-      S.current = (S.current + 1) % S.players.length;
-      if (S.wall.length === 0) {
-        alert('流局（山札がなくなりました）');
-        return;
+        if (dot) dot.className = game.turnIndex === p ? "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" : "w-2.5 h-2.5 rounded-full bg-slate-600";
+        if (nameEl) nameEl.innerText = game.players[p].name;
+        if (scoreEl) scoreEl.innerText = `${game.players[p].score}点`;
+        if (dealerBadge) {
+          if (game.dealerIndex === p) dealerBadge.classList.remove('hidden');
+          else dealerBadge.classList.add('hidden');
+        }
+
+        const discardsContainer = document.getElementById(`p${displaySeat}-discards`);
+        if (discardsContainer) {
+          discardsContainer.innerHTML = '';
+          (game.players[p].discards || []).forEach(char => {
+            const tile = document.createElement('span');
+            tile.className = "inline-flex items-center justify-center w-6 h-8 bg-gradient-to-b from-amber-50 to-amber-100 text-slate-900 font-extrabold text-xs rounded-md shadow-sm border border-amber-200/80";
+            tile.innerText = char;
+            discardsContainer.appendChild(tile);
+          });
+        }
       }
-      const curP = S.players[S.current];
-      S.hands[curP.id].push(S.wall.pop());
-      S.drawn = true;
-      render();
 
-      if (curP.isBot) {
-        setTimeout(processBotTurn, 800);
+      // User Hand & Groups
+      const p0 = game.players[game.myPlayerIndex];
+      
+      // Locked Groups
+      lockedGroupsArea.innerHTML = '';
+      (p0.lockedGroups || []).forEach((group, gIdx) => {
+        const groupWrapper = document.createElement('div');
+        groupWrapper.className = "flex items-center bg-slate-800/90 border border-amber-500/40 rounded-xl p-1 shadow-md shrink-0";
+
+        const tilesContainer = document.createElement('div');
+        tilesContainer.className = "flex gap-1";
+
+        group.tiles.forEach(tileObj => {
+          const tileEl = document.createElement('div');
+          tileEl.className = "w-7 sm:w-8 h-9 sm:h-10 tile-locked rounded flex items-center justify-center text-slate-900 font-black text-sm sm:text-base";
+          tileEl.innerText = tileObj.char;
+          tilesContainer.appendChild(tileEl);
+        });
+
+        const unlockBtn = document.createElement('button');
+        unlockBtn.className = "ml-1 bg-rose-600/80 hover:bg-rose-500 text-white rounded px-1.5 py-1 text-[10px] font-bold shadow transition";
+        unlockBtn.innerHTML = `<i class="fa-solid fa-unlock"></i>`;
+        unlockBtn.addEventListener('click', () => game.unlockGroup(gIdx));
+
+        groupWrapper.appendChild(tilesContainer);
+        groupWrapper.appendChild(unlockBtn);
+        lockedGroupsArea.appendChild(groupWrapper);
+      });
+
+      if (!p0.lockedGroups || p0.lockedGroups.length === 0) {
+        lockedGroupsArea.innerHTML = `<span class="text-[10px] text-slate-400 italic px-1 whitespace-nowrap">固定された単語なし</span>`;
+      }
+
+      // Free Tiles Area
+      freeTilesArea.innerHTML = '';
+      (p0.freeHand || []).forEach((tileObj, fIdx) => {
+        const tileEl = document.createElement('div');
+        tileEl.dataset.index = fIdx;
+        
+        const seqIndex = game.selectedTileIndices.indexOf(fIdx);
+        const isSelected = seqIndex !== -1;
+
+        tileEl.className = `tile w-10 sm:w-12 h-13 sm:h-16 ${isSelected ? 'selected' : ''}`;
+
+        tileEl.innerHTML = `
+          <div class="tile-inner flex flex-col justify-between p-0.5 text-slate-900 relative">
+            ${isSelected ? `<div class="order-badge">${seqIndex + 1}</div>` : ''}
+            <span class="text-[8px] font-bold text-amber-800/40">自由</span>
+            <span class="text-lg sm:text-2xl font-black text-center my-auto leading-none">${tileObj.char}</span>
+          </div>
+        `;
+
+        tileEl.addEventListener('click', () => {
+          SE.playClick();
+          const existingPos = game.selectedTileIndices.indexOf(fIdx);
+          if (existingPos !== -1) {
+            game.selectedTileIndices.splice(existingPos, 1);
+          } else {
+            game.selectedTileIndices.push(fIdx);
+          }
+          renderUI();
+        });
+
+        freeTilesArea.appendChild(tileEl);
+      });
+
+      // Controls Action Bar Button States
+      const isMyTurn = game.turnIndex === game.myPlayerIndex;
+      const selCount = game.selectedTileIndices.length;
+
+      btnLockGroup.disabled = !(selCount === 2 || selCount === 3);
+      btnTransform.disabled = selCount !== 1;
+      btnDiscard.disabled = !isMyTurn || selCount !== 1;
+
+      if (isMyTurn && p0.lockedGroups && p0.lockedGroups.length === 5 && p0.freeHand.length === 0) {
+        const lockedWords = p0.lockedGroups.map(g => g.word);
+        const sets2 = lockedWords.filter(w => w.length === 2);
+        const sets3 = lockedWords.filter(w => w.length === 3);
+
+        if (sets2.length === 1 && sets3.length === 4) {
+          btnTsumo.classList.remove('hidden');
+        } else {
+          btnTsumo.classList.add('hidden');
+        }
+      } else {
+        btnTsumo.classList.add('hidden');
+      }
+
+      const statusMsg = document.getElementById('table-status-msg');
+      if (isMyTurn) {
+        statusMsg.innerText = "あなたの番です。タップ順で語を揃えて「固定」か「捨てる」を選択！";
+        statusMsg.className = "text-[11px] text-center text-emerald-300 font-bold h-5 flex items-center justify-center";
+      } else {
+        statusMsg.innerText = `${game.players[game.turnIndex].name} が思考中...`;
+        statusMsg.className = "text-[11px] text-center text-amber-300 font-bold h-5 flex items-center justify-center";
       }
     }
 
-    // Botの自動思考（1番右の牌をランダムまたは自動で捨てる）
-    function processBotTurn() {
-      const curP = S.players[S.current];
-      const botHand = S.hands[curP.id];
-      const discardIdx = Math.floor(Math.random() * botHand.length);
-      const tile = botHand.splice(discardIdx, 1)[0];
-      S.discards.push({ p: curP.id, tile });
-      S.drawn = false;
-      nextTurn();
+    btnLockGroup.addEventListener('click', () => game.lockSelectedTiles());
+
+    btnTransform.addEventListener('click', () => {
+      const selectedIndex = game.selectedTileIndices[0];
+      if (selectedIndex === undefined) return;
+      const tileObj = game.players[game.myPlayerIndex].freeHand[selectedIndex];
+      if (CHAR_TRANSFORMS[tileObj.char]) {
+        tileObj.char = CHAR_TRANSFORMS[tileObj.char];
+        SE.playClick();
+        game.updateTenpaiState();
+        renderUI();
+      } else {
+        alert(`「${tileObj.char}」は変形できません。`);
+      }
+    });
+
+    btnDiscard.addEventListener('click', () => {
+      const selectedIndex = game.selectedTileIndices[0];
+      if (selectedIndex !== undefined && game.turnIndex === game.myPlayerIndex) {
+        if (game.roomCode !== 'SOLO' && !net.isHost) {
+          net.connections[0].send({
+            type: 'DISCARD_ACTION',
+            playerIndex: game.myPlayerIndex,
+            tileIndex: selectedIndex
+          });
+        } else {
+          game.discardTile(game.myPlayerIndex, selectedIndex);
+        }
+        renderUI();
+      }
+    });
+
+    btnTsumo.addEventListener('click', () => {
+      const p0 = game.players[game.myPlayerIndex];
+      const lockedWords = p0.lockedGroups.map(g => g.word);
+      const isAllRegistered = lockedWords.every(w => w.length === 2 ? dictStore.hasWord2(w) : dictStore.hasWord3(w));
+
+      const winData = { isWin: isAllRegistered, isChallengeRon: !isAllRegistered, allWords: lockedWords };
+
+      if (winData.isWin) {
+        winData.allWords.forEach(w => dictStore.addWord(w));
+        game.applyWinScores(game.myPlayerIndex, -1, 12000);
+        triggerCutin("ツモ！！", "全グループ固定達成！見事アガリ！", winData);
+      } else {
+        openVerdictModal(winData, "ツモ");
+      }
+    });
+
+    btnRon.addEventListener('click', () => {
+      const p0 = game.players[game.myPlayerIndex];
+      const ronEval = game.checkRonOpportunity(game.myPlayerIndex, game.lastDiscardedTile);
+
+      if (ronEval.canRon || game.waitingChars.includes(game.lastDiscardedTile)) {
+        const lockedWords = p0.lockedGroups.map(g => g.word);
+        const freeChars = [...p0.freeHand.map(t => t.char), game.lastDiscardedTile];
+        const lastWord = freeChars.join('');
+        const allWords = [...lockedWords, lastWord];
+
+        const isWin = allWords.every(w => w.length === 2 ? dictStore.hasWord2(w) : dictStore.hasWord3(w));
+        const evalRes = { isWin, allWords };
+
+        if (isWin) {
+          allWords.forEach(w => dictStore.addWord(w));
+          game.applyWinScores(game.myPlayerIndex, game.lastDiscarderIndex, 12000);
+          triggerCutin("ロン！！", `${game.players[game.lastDiscarderIndex].name} から見事アガリ！`, { allWords });
+        } else {
+          openVerdictModal(evalRes, "ロン");
+        }
+      }
+      btnRon.classList.add('hidden');
+    });
+
+    function openVerdictModal(winData, actionType) {
+      game.pendingVerdict = { winData, actionType };
+      const wordListContainer = document.getElementById('verdict-word-list');
+      wordListContainer.innerHTML = '';
+
+      winData.allWords.forEach(w => {
+        const isRegistered = w.length === 2 ? dictStore.hasWord2(w) : dictStore.hasWord3(w);
+        const badge = document.createElement('span');
+        badge.className = isRegistered 
+          ? "px-3.5 py-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-sm font-black rounded-xl"
+          : "px-3.5 py-1.5 bg-amber-500/30 text-amber-200 border-2 border-yellow-400 text-sm font-black rounded-xl animate-pulse";
+        badge.innerHTML = `${w} ${isRegistered ? '<i class="fa-solid fa-check text-xs"></i>' : '<span class="text-[10px] bg-yellow-400 text-slate-950 px-1 rounded ml-1 font-black">新語!</span>'}`;
+        wordListContainer.appendChild(badge);
+      });
+
+      verdictModal.classList.remove('hidden');
     }
 
-    $('leave').onclick = () => location.reload();
+    btnVerdictApprove.addEventListener('click', () => {
+      if (!game.pendingVerdict) return;
+      const { winData, actionType } = game.pendingVerdict;
+
+      winData.allWords.forEach(w => dictStore.addWord(w));
+      verdictModal.classList.add('hidden');
+
+      const loser = actionType === "ロン" ? game.lastDiscarderIndex : -1;
+      game.applyWinScores(game.myPlayerIndex, loser, 12000);
+
+      triggerCutin(`${actionType}！！`, "新語チャレンジ承認！アガリ成立！", winData);
+    });
+
+    btnVerdictReject.addEventListener('click', () => {
+      verdictModal.classList.add('hidden');
+      alert("審議不認可：実在しない単語が含まれていたため、アガリは認められませんでした。");
+    });
+
+    function triggerCutin(title, subtitle, winData) {
+      const modal = document.getElementById('cutin-modal');
+      const titleEl = document.getElementById('cutin-title');
+      const subtitleEl = document.getElementById('cutin-subtitle');
+      const wordsEl = document.getElementById('cutin-words');
+      const lightning = document.getElementById('lightning-overlay');
+
+      titleEl.innerText = title;
+      subtitleEl.innerText = subtitle;
+
+      wordsEl.innerHTML = '';
+      if (winData.allWords) {
+        winData.allWords.forEach(w => {
+          const tag = document.createElement('span');
+          tag.className = "px-4 py-2 gold-button text-slate-950 font-black text-xl rounded-2xl shadow-lg border-2 border-white";
+          tag.innerText = w;
+          wordsEl.appendChild(tag);
+        });
+      }
+
+      lightning.className = "fixed inset-0 z-50 lightning-effect pointer-events-none";
+      setTimeout(() => lightning.className = "pointer-events-none fixed inset-0 z-50 opacity-0", 650);
+
+      if (title.includes("ロン")) {
+        SE.playLightning();
+      } else {
+        SE.playFanfare();
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 110, spread: 80, origin: { y: 0.6 } });
+        }
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    cutinCloseBtn.addEventListener('click', () => {
+      cutinModal.classList.add('hidden');
+      game.advanceRound(game.turnIndex === game.dealerIndex);
+    });
+
+    btnRematch.addEventListener('click', () => {
+      matchEndModal.classList.add('hidden');
+      game.resetMatch();
+      renderUI();
+    });
+
+    document.getElementById('btn-generate-code').addEventListener('click', () => {
+      document.getElementById('input-room-code').value = 'MAHJONG' + Math.floor(10 + Math.random() * 90);
+    });
+
+    // Check URL query parameters for invitation links (e.g. ?room=MAHJONG7)
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomParam = urlParams.get('room');
+      if (roomParam) {
+        const roomInput = document.getElementById('input-room-code');
+        if (roomInput) {
+          roomInput.value = roomParam.toUpperCase();
+          const notify = document.getElementById('copy-notify-text');
+          const notifyMsg = document.getElementById('copy-notify-msg');
+          if (notify && notifyMsg) {
+            notifyMsg.innerText = `招待URLから部屋「${roomParam.toUpperCase()}」を読み込みました！`;
+            notify.classList.remove('hidden');
+          }
+        }
+      }
+    });
+
+    const btnCopyCode = document.getElementById('btn-copy-code');
+    const btnCopyLink = document.getElementById('btn-copy-link');
+    const copyNotifyText = document.getElementById('copy-notify-text');
+    const copyNotifyMsg = document.getElementById('copy-notify-msg');
+
+    function copyToClipboard(text, msg) {
+      const tempInput = document.createElement('input');
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+
+      SE.playClick();
+      if (copyNotifyMsg) copyNotifyMsg.innerText = msg;
+      if (copyNotifyText) {
+        copyNotifyText.classList.remove('hidden');
+        setTimeout(() => copyNotifyText.classList.add('hidden'), 3000);
+      }
+    }
+
+    if (btnCopyCode) {
+      btnCopyCode.addEventListener('click', () => {
+        const roomInput = document.getElementById('input-room-code');
+        if (!roomInput.value.trim()) {
+          roomInput.value = 'MAHJONG' + Math.floor(10 + Math.random() * 90);
+        }
+        copyToClipboard(roomInput.value.trim(), '部屋コードをコピーしました！');
+      });
+    }
+
+    if (btnCopyLink) {
+      btnCopyLink.addEventListener('click', () => {
+        const roomInput = document.getElementById('input-room-code');
+        if (!roomInput.value.trim()) {
+          roomInput.value = 'MAHJONG' + Math.floor(10 + Math.random() * 90);
+        }
+        const baseUrl = window.location.href.split('?')[0];
+        const shareUrl = `${baseUrl}?room=${encodeURIComponent(roomInput.value.trim())}`;
+        copyToClipboard(shareUrl, '招待URLをコピーしました！LINE等で送信できます。');
+      });
+    }
+
+    async function startGameFromLobby(isMulti) {
+      const pName = document.getElementById('input-player-name').value.trim() || 'あなた';
+      const code = document.getElementById('input-room-code').value.trim() || 'SOLO';
+
+      game.players[0].name = pName;
+      game.players[0].uid = currentUserId;
+      game.roomCode = isMulti ? code : 'SOLO';
+
+      document.getElementById('room-display-game').innerHTML = `<i class="fa-solid fa-wifi text-[10px] text-emerald-400"></i> ${game.roomCode}`;
+      startScreen.classList.add('hidden');
+
+      if (isMulti) {
+        document.getElementById('table-status-msg').innerText = "対戦相手に接続中...";
+        const isHostCreated = await net.hostRoom(code);
+        if (isHostCreated) {
+          game.myPlayerIndex = 0;
+          game.resetMatch();
+        } else {
+          const joined = await net.joinRoom(code);
+          if (!joined) {
+            alert("部屋への接続に失敗しました。部屋コードを確認するか、ホストが部屋を作成するのを待ってください。");
+            startScreen.classList.remove('hidden');
+            return;
+          }
+        }
+      } else {
+        game.myPlayerIndex = 0;
+        game.resetMatch();
+      }
+
+      renderUI();
+    }
+
+    document.getElementById('btn-start-multi').addEventListener('click', () => startGameFromLobby(true));
+    document.getElementById('btn-start-solo').addEventListener('click', () => startGameFromLobby(false));
+    btnBackLobby.addEventListener('click', () => startScreen.classList.remove('hidden'));
+
+    function openDictionary() {
+      const container = document.getElementById('dict-words-container');
+      document.getElementById('dict-count-2').innerText = dictStore.words2.size;
+      document.getElementById('dict-count-3').innerText = dictStore.words3.size;
+
+      container.innerHTML = `
+        <div>
+          <h4 class="text-xs font-bold text-amber-400 mb-1 border-b border-slate-700 pb-1">アタマ（2文字）</h4>
+          <div class="flex flex-wrap gap-1">
+            ${Array.from(dictStore.words2).map(w => `<span class="px-2.5 py-1 bg-amber-500/20 text-amber-200 border border-amber-500/30 text-xs rounded-lg font-bold">${w}</span>`).join('')}
+          </div>
+        </div>
+        <div class="mt-4">
+          <h4 class="text-xs font-bold text-cyan-400 mb-1 border-b border-slate-700 pb-1">面子（3文字）</h4>
+          <div class="flex flex-wrap gap-1">
+            ${Array.from(dictStore.words3).map(w => `<span class="px-2.5 py-1 bg-cyan-500/20 text-cyan-200 border border-cyan-500/30 text-xs rounded-lg font-bold">${w}</span>`).join('')}
+          </div>
+        </div>
+      `;
+      dictModal.classList.remove('hidden');
+    }
+
+    openDictGameBtn.addEventListener('click', openDictionary);
+    openDictLobbyBtn.addEventListener('click', openDictionary);
+    closeDictBtn.addEventListener('click', () => dictModal.classList.add('hidden'));
+
+    soundToggleBtn.addEventListener('click', () => {
+      SE.muted = !SE.muted;
+      soundToggleBtn.querySelector('i').className = SE.muted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
+    });
   </script>
 </body>
 </html>
