@@ -3,13 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>極・ひらがな麻雀 - オンライン対戦</title>
+  <title>極・ひらがな麻雀 - 豪華オンライン対戦</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Canvas Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <!-- PeerJS -->
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <!-- Google Fonts -->
@@ -37,7 +35,6 @@
       outline: 2px solid #fbbf24;
     }
 
-    /* 豪華なネオンゴールドテキスト */
     .gold-text {
       background: linear-gradient(135deg, #fffbeb 0%, #fef08a 25%, #f59e0b 60%, #b45309 100%);
       -webkit-background-clip: text;
@@ -49,7 +46,6 @@
       box-shadow: 0 0 25px rgba(16, 185, 129, 0.5), inset 0 0 15px rgba(16, 185, 129, 0.3);
     }
 
-    /* 豪華ゴールドボタン */
     .gold-button {
       background: linear-gradient(135deg, #fbbf24 0%, #d97706 50%, #92400e 100%);
       border: 1px solid #fef08a;
@@ -64,7 +60,6 @@
       transform: translateY(1px) scale(0.98);
     }
 
-    /* 牌のリアルな3D立体スタイリング */
     .tile {
       perspective: 1000px;
       transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -97,7 +92,6 @@
       box-shadow: 0 16px 30px rgba(0,0,0,0.8), 0 0 25px rgba(245, 158, 11, 0.9) !important;
     }
 
-    /* キャラクターアバター枠のアニメーション */
     @keyframes avatar-pulse {
       0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), 0 0 40px rgba(16, 185, 129, 0.4); transform: scale(1); }
       50% { box-shadow: 0 0 35px rgba(245, 158, 11, 0.9), 0 0 60px rgba(16, 185, 129, 0.7); transform: scale(1.03); }
@@ -106,7 +100,6 @@
       animation: avatar-pulse 3s infinite ease-in-out;
     }
 
-    /* ロン・ツモのド派手カットイン アニメーション */
     @keyframes cutin-zoom {
       0% { transform: scale(0.1) rotate(-15deg); opacity: 0; }
       60% { transform: scale(1.2) rotate(3deg); opacity: 1; }
@@ -118,7 +111,6 @@
       text-shadow: 0 0 40px rgba(245, 158, 11, 1), 6px 6px 0px #000;
     }
 
-    /* トースト通知 */
     #toast-notification {
       transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
     }
@@ -126,17 +118,14 @@
 </head>
 <body class="flex flex-col justify-between items-center relative overflow-hidden h-screen bg-slate-950">
 
-  <!-- Toast Notification -->
   <div id="toast-notification" class="fixed top-5 z-50 transform -translate-y-20 opacity-0 bg-slate-900/95 border-2 border-amber-400 text-amber-300 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-md pointer-events-none">
     <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
     <span id="toast-message" class="font-bold text-sm">通知メッセージ</span>
   </div>
 
-  <!-- 1. LOBBY SCREEN -->
   <div id="start-screen" class="fixed inset-0 z-40 bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-950 flex flex-col items-center justify-center p-4">
     <div class="max-w-xl w-full bg-slate-900/95 border-2 border-amber-500/70 p-6 md:p-8 rounded-3xl shadow-2xl backdrop-blur-2xl flex flex-col items-center text-center relative overflow-hidden">
       
-      <!-- Decoration Lights -->
       <div class="absolute -top-12 -left-12 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl"></div>
       <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-amber-500/20 rounded-full blur-3xl"></div>
 
@@ -148,19 +137,17 @@
         <h1 class="text-4xl md:text-5xl font-black italic tracking-wider gold-text my-1">
           🀄 極・ひらがな麻雀
         </h1>
-        <p class="text-xs text-slate-300 mt-1 font-medium">言葉を揃えて上がれ！オンライン完全対戦モード搭載</p>
+        <p class="text-xs text-slate-300 mt-1 font-medium">言葉を揃えて上がれ！マルチタブ＆リアルタイム通信対戦</p>
       </div>
 
-      <!-- Player Name Input -->
       <div class="w-full mb-4 text-left">
         <label class="block text-xs font-extrabold text-amber-200 mb-1 flex items-center justify-between">
           <span><i class="fa-solid fa-user text-amber-400 mr-1.5"></i> プレイヤー名</span>
-          <span class="text-[10px] text-emerald-400 font-mono font-bold">📡 P2P通信準備完了</span>
+          <span class="text-[10px] text-emerald-400 font-mono font-bold">📡 セキュア通信対応完了</span>
         </label>
         <input type="text" id="input-player-name" class="w-full px-4 py-3 bg-slate-950/90 border border-amber-500/50 rounded-xl focus:border-amber-400 outline-none font-bold text-amber-100 text-sm shadow-inner transition focus:ring-2 focus:ring-amber-500/50" value="雀神プレイヤー" />
       </div>
 
-      <!-- Tab Buttons: Host vs Guest -->
       <div class="grid grid-cols-2 gap-2 w-full mb-4 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
         <button id="tab-host" class="py-2.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-2 bg-amber-500/20 border border-amber-500/60 text-amber-300 shadow">
           <i class="fa-solid fa-house-chimney-crack"></i> 部屋を作る (ホスト)
@@ -170,9 +157,7 @@
         </button>
       </div>
 
-      <!-- HOST SECTION CONTAINER -->
       <div id="section-host" class="w-full space-y-4">
-        <!-- Player Mode Selection -->
         <div class="text-left">
           <label class="block text-xs font-bold text-amber-200/90 mb-1.5">
             <i class="fa-solid fa-users text-amber-400 mr-1.5"></i> 対戦人数モードを選択
@@ -193,7 +178,6 @@
         </button>
       </div>
 
-      <!-- GUEST SECTION CONTAINER -->
       <div id="section-guest" class="w-full space-y-4 hidden">
         <div class="text-left">
           <label class="block text-xs font-bold text-amber-200/90 mb-1.5">
@@ -208,9 +192,8 @@
         </button>
       </div>
 
-      <!-- Dictionary Modal Trigger -->
       <div class="mt-5 pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex justify-between w-full items-center">
-        <span><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> 完全オンラインリアルタイムマッチ</span>
+        <span><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> マルチタブ・クロスセキュア対戦対応</span>
         <button id="open-dict-lobby-btn" class="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1.5 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30">
           <i class="fa-solid fa-book-open"></i> 語彙図鑑
         </button>
@@ -218,19 +201,16 @@
     </div>
   </div>
 
-  <!-- 2. WAITING ROOM MODAL (Strictly NO CPU - Human Only) -->
   <div id="waiting-room-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md hidden p-4">
     <div class="bg-slate-900 border-2 border-amber-500/80 p-6 md:p-8 rounded-3xl max-w-md w-full shadow-2xl text-center relative flex flex-col items-center overflow-hidden">
       
-      <!-- User's Avatar in Glowing Neon Frame -->
       <div class="w-28 h-28 mb-3 relative rounded-full p-1 bg-gradient-to-tr from-amber-400 via-emerald-400 to-yellow-500 avatar-glow shrink-0">
-        <img src="54_20260130212031.jpg" alt="キャラクター" class="w-full h-full object-cover rounded-full border-2 border-slate-900" onerror="this.onerror=null; this.src='https://placehold.co/200x200/10382b/fef08a?text=Mahjong+Master';" />
+        <img src="https://placehold.co/200x200/10382b/fef08a?text=Mahjong+Master" alt="キャラクター" class="w-full h-full object-cover rounded-full border-2 border-slate-900" />
       </div>
 
       <h3 class="text-2xl font-black gold-text mb-1">対戦相手を待っています…</h3>
       <p class="text-xs text-amber-200/80 mb-4 font-bold">※人間プレイヤーが全員揃うまで開始しません</p>
 
-      <!-- Room Code Display Card -->
       <div class="w-full bg-slate-950/90 border border-amber-500/40 p-3 rounded-2xl mb-4 flex items-center justify-between shadow-inner">
         <div class="text-left">
           <span class="text-[10px] text-slate-400 block font-bold">対戦部屋コード</span>
@@ -241,16 +221,13 @@
         </button>
       </div>
 
-      <!-- Dynamic Counter Slot -->
       <div class="bg-gradient-to-r from-emerald-950 via-slate-950 to-emerald-950 border-2 border-emerald-500/60 px-6 py-2.5 rounded-full mb-5 shadow-lg">
         <span class="text-xs text-slate-300 mr-2 font-bold">集まった人数:</span>
         <span id="waiting-counter" class="text-2xl font-black text-emerald-400 font-mono">1 / 3 人</span>
       </div>
 
-      <!-- Player List Slots -->
       <div id="waiting-player-list" class="w-full space-y-2 mb-6"></div>
 
-      <!-- Invite Buttons inside Waiting Room -->
       <div class="w-full flex gap-2">
         <button id="btn-copy-waiting-link" class="flex-1 py-3 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 rounded-xl border border-emerald-500/50 text-xs font-black transition flex items-center justify-center gap-2">
           <i class="fa-solid fa-share-nodes"></i> 招待URLをコピー
@@ -262,40 +239,6 @@
     </div>
   </div>
 
-  <!-- 3. CUTIN / VICTORY MODAL -->
-  <div id="cutin-modal" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md hidden p-4">
-    <div id="cutin-title" class="text-7xl md:text-9xl font-black italic gold-text cutin-text mb-2 tracking-wider">ロン！</div>
-    <div id="cutin-subtitle" class="text-base md:text-xl font-bold text-emerald-300 mb-4 text-center"></div>
-    <div id="cutin-words" class="flex flex-wrap justify-center gap-2 max-w-2xl mb-6 p-4 bg-slate-900/90 rounded-2xl border-2 border-amber-400 shadow-2xl"></div>
-    <button id="cutin-close-btn" class="px-8 py-3.5 gold-button text-slate-950 font-extrabold text-lg rounded-full shadow-2xl flex items-center gap-2">
-      <span>次局へ進む</span>
-      <i class="fa-solid fa-arrow-right"></i>
-    </button>
-  </div>
-
-  <!-- 4. DICTIONARY MODAL -->
-  <div id="dict-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
-    <div class="bg-slate-900 border-2 border-emerald-500/50 p-6 rounded-3xl max-w-lg w-full shadow-2xl relative text-slate-100 max-h-[80vh] flex flex-col">
-      <button id="close-dict-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-      <h3 class="text-xl font-black text-emerald-400 mb-1 flex items-center gap-2">
-        <i class="fa-solid fa-book-bookmark"></i> 習得語彙・記憶図鑑
-      </h3>
-      <p class="text-xs text-slate-300 mb-3">上がった言葉が自動保存され、対局中の「待ち文字計算」に活用されます。</p>
-      <div class="flex gap-2 mb-3">
-        <span class="text-xs bg-slate-800 px-3 py-1 rounded-full text-amber-300 border border-slate-700 font-bold">
-          2文字: <strong id="dict-count-2">0</strong> 個
-        </span>
-        <span class="text-xs bg-slate-800 px-3 py-1 rounded-full text-cyan-300 border border-slate-700 font-bold">
-          3文字: <strong id="dict-count-3">0</strong> 個
-        </span>
-      </div>
-      <div id="dict-words-container" class="flex-1 overflow-y-auto pr-1 space-y-3"></div>
-    </div>
-  </div>
-
-  <!-- HEADER -->
   <header class="w-full max-w-5xl px-4 py-2.5 flex justify-between items-center z-10 bg-slate-900/90 backdrop-blur-md border-b border-amber-500/30 shrink-0 shadow-lg">
     <div class="flex items-center gap-3">
       <button id="btn-back-lobby" class="text-slate-300 hover:text-white text-xs bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-1.5 font-bold transition">
@@ -308,19 +251,14 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <button id="open-dict-game-btn" class="px-3 py-1.5 bg-emerald-900/80 text-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow border border-emerald-500/40">
-        <i class="fa-solid fa-book"></i> 語彙図鑑 (<span id="dict-count-badge">0</span>)
-      </button>
       <button id="sound-toggle-btn" class="px-3 py-1.5 bg-slate-800 text-yellow-400 rounded-xl border border-slate-700 text-xs shadow">
         <i class="fa-solid fa-volume-high" id="sound-icon"></i>
       </button>
     </div>
   </header>
 
-  <!-- MAIN MAHJONG TABLE -->
   <main class="w-full max-w-5xl flex-1 flex flex-col justify-between px-2 py-2 relative z-0 overflow-hidden mahjong-table rounded-3xl my-1">
     
-    <!-- TOP OPPONENT -->
     <div class="flex flex-col items-center w-full shrink-0">
       <div id="player-2-card" class="flex items-center gap-2 bg-slate-900/90 px-4 py-1.5 rounded-full border border-amber-500/40 text-xs shadow-md">
         <span class="w-2.5 h-2.5 rounded-full bg-slate-500" id="p2-turn-dot"></span>
@@ -330,9 +268,7 @@
       <div id="p2-discards" class="flex flex-wrap justify-center gap-1 max-w-md my-1 min-h-[28px]"></div>
     </div>
 
-    <!-- MIDDLE AREA -->
     <div class="flex justify-between items-center w-full my-auto py-1">
-      <!-- LEFT OPPONENT -->
       <div class="flex flex-col items-start w-24 sm:w-32 shrink-0" id="p3-container">
         <div id="player-3-card" class="flex items-center gap-1.5 bg-slate-900/90 px-3 py-1 rounded-full border border-amber-500/40 text-[11px] mb-1 shadow-md">
           <span class="w-2.5 h-2.5 rounded-full bg-slate-500" id="p3-turn-dot"></span>
@@ -342,7 +278,6 @@
         <div id="p3-discards" class="flex flex-wrap gap-1 max-w-[85px] min-h-[40px]"></div>
       </div>
 
-      <!-- CENTER BOARD -->
       <div class="flex flex-col items-center justify-center bg-slate-950/90 border-2 border-amber-500/50 p-3.5 rounded-2xl shadow-2xl relative max-w-xs w-full mx-1 backdrop-blur-md">
         <div class="flex justify-between items-center w-full mb-2 text-xs font-bold text-slate-300 border-b border-amber-500/20 pb-1.5">
           <span id="game-round-text" class="gold-text font-black text-sm">東 1 局</span>
@@ -355,11 +290,6 @@
             <div id="dora-tile" class="w-8 h-10 bg-gradient-to-b from-amber-100 to-amber-200 border-2 border-amber-400 rounded-lg flex items-center justify-center font-black text-xl text-slate-900 shadow-md">
               あ
             </div>
-          </div>
-
-          <div id="tenpai-display-container" class="hidden flex flex-col items-end">
-            <span class="text-[11px] font-black text-yellow-300 animate-pulse flex items-center gap-1"><i class="fa-solid fa-crosshair"></i> テンパイ！</span>
-            <div id="waiting-tiles-list" class="flex gap-1 overflow-x-auto max-w-[120px] mt-0.5"></div>
           </div>
         </div>
 
@@ -377,7 +307,6 @@
         </div>
       </div>
 
-      <!-- RIGHT OPPONENT -->
       <div class="flex flex-col items-end w-24 sm:w-32 shrink-0">
         <div id="player-1-card" class="flex items-center gap-1.5 bg-slate-900/90 px-3 py-1 rounded-full border border-amber-500/40 text-[11px] mb-1 shadow-md">
           <span class="font-bold text-slate-100 truncate" id="p1-name">対戦相手 1</span>
@@ -388,7 +317,6 @@
       </div>
     </div>
 
-    <!-- BOTTOM USER HAND AREA -->
     <div class="w-full flex flex-col items-center shrink-0">
       <div id="p0-discards" class="flex flex-wrap justify-center gap-1 max-w-xl min-h-[28px] mb-1.5 bg-slate-950/70 p-1.5 rounded-xl border border-amber-500/20"></div>
 
@@ -405,7 +333,6 @@
         </div>
       </div>
 
-      <!-- HAND TILES CONTAINER -->
       <div class="w-full bg-slate-950/90 p-2.5 rounded-2xl border-2 border-amber-500/40 flex items-center gap-2 overflow-x-auto min-h-[85px] shadow-2xl backdrop-blur-md">
         <div id="free-tiles-area" class="flex items-center gap-1.5 flex-1 justify-center"></div>
       </div>
@@ -413,7 +340,6 @@
   </main>
 
   <script>
-    // Audio Synthesizer Class
     class SoundEngine {
       constructor() { this.ctx = null; this.muted = false; }
       init() { if (!this.ctx) { const AudioCtx = window.AudioContext || window.webkitAudioContext; if (AudioCtx) this.ctx = new AudioCtx(); } }
@@ -463,11 +389,10 @@
     let isHost = true;
     let selectedTargetCount = 3;
     let roomCode = "";
-    let peer = null;
-    let myPeerId = "";
-    let playerList = []; // Connected Human Players List
+    let playerName = "";
+    let channel = null;
+    let connectedPlayers = [];
 
-    // Toast Notification Handler
     function showToast(msg) {
       const toast = document.getElementById('toast-notification');
       document.getElementById('toast-message').innerText = msg;
@@ -479,7 +404,6 @@
       }, 2500);
     }
 
-    // Auto-detect URL parameter for room code
     window.addEventListener('DOMContentLoaded', () => {
       const params = new URLSearchParams(window.location.search);
       const roomParam = params.get('room');
@@ -490,7 +414,6 @@
       }
     });
 
-    // Host / Guest Tab Switchers
     const tabHost = document.getElementById('tab-host');
     const tabGuest = document.getElementById('tab-guest');
     const sectionHost = document.getElementById('section-host');
@@ -514,7 +437,6 @@
       sectionHost.classList.add('hidden');
     });
 
-    // Mode selection (3P / 4P)
     const btnMode3p = document.getElementById('btn-mode-3p');
     const btnMode4p = document.getElementById('btn-mode-4p');
 
@@ -532,19 +454,16 @@
       btnMode3p.className = "py-3 px-4 rounded-xl border-2 font-bold text-xs transition flex items-center justify-center gap-2 border-slate-800 bg-slate-950/80 text-slate-400 hover:border-slate-700";
     });
 
-    // Host Create Room
     document.getElementById('btn-create-room').addEventListener('click', () => {
       SE.playClick();
-      const pName = document.getElementById('input-player-name').value.trim() || 'ホスト雀士';
+      playerName = document.getElementById('input-player-name').value.trim() || 'ホスト雀士';
       roomCode = 'HM-' + Math.floor(1000 + Math.random() * 9000);
-      
-      openWaitingRoom(roomCode, pName, selectedTargetCount);
+      openWaitingRoom(roomCode, playerName, selectedTargetCount, true);
     });
 
-    // Guest Join Room
     document.getElementById('btn-join-room').addEventListener('click', () => {
       SE.playClick();
-      const pName = document.getElementById('input-player-name').value.trim() || 'ゲスト雀士';
+      playerName = document.getElementById('input-player-name').value.trim() || 'ゲスト雀士';
       const inputCode = document.getElementById('input-guest-code').value.trim().toUpperCase();
 
       if (!inputCode) {
@@ -552,41 +471,41 @@
         return;
       }
       roomCode = inputCode;
-      openWaitingRoom(roomCode, pName, selectedTargetCount);
+      openWaitingRoom(roomCode, playerName, selectedTargetCount, false);
     });
 
-    // Open Waiting Lobby
-    function openWaitingRoom(code, name, targetCount) {
+    function openWaitingRoom(code, name, targetCount, hostFlag) {
       document.getElementById('start-screen').classList.add('hidden');
       document.getElementById('waiting-room-modal').classList.remove('hidden');
       document.getElementById('display-room-code').innerText = code;
 
-      playerList = [{ name: name, isMe: true, isHost: isHost }];
+      connectedPlayers = [{ name: name, isMe: true, isHost: hostFlag }];
       updateWaitingLobbyUI(targetCount);
 
-      // PeerJS connection setup
-      myPeerId = 'mahjong-' + code + '-' + (isHost ? 'host' : 'guest-' + Math.floor(Math.random() * 8999 + 1000));
-      peer = new Peer(myPeerId);
-
-      peer.on('open', (id) => {
-        showToast("待機部屋に入りました");
-      });
-
-      // Handle Host or Guest P2P Events
-      peer.on('connection', (conn) => {
-        conn.on('open', () => {
-          SE.playFanfare();
-          if (playerList.length < targetCount) {
-            playerList.push({ name: `参加者 ${playerList.length + 1}`, isMe: false });
-            updateWaitingLobbyUI(targetCount);
-            showToast("新しいプレイヤーが合流しました！");
+      // Use BroadcastChannel for robust, secure multi-tab / local network simulation without WebSockets
+      if (window.BroadcastChannel) {
+        channel = new BroadcastChannel('mahjong_room_' + code);
+        channel.onmessage = (event) => {
+          const data = event.data;
+          if (data.type === 'JOIN') {
+            if (!connectedPlayers.some(p => p.name === data.name)) {
+              connectedPlayers.push({ name: data.name, isMe: false, isHost: false });
+              SE.playFanfare();
+              updateWaitingLobbyUI(targetCount);
+              showToast(`${data.name} さんが参加しました！`);
+            }
+          } else if (data.type === 'START') {
+            startMahjongGame();
           }
-        });
-      });
+        };
+
+        // Broadcast join status
+        channel.postMessage({ type: 'JOIN', name: name });
+      }
     }
 
     function updateWaitingLobbyUI(targetCount) {
-      document.getElementById('waiting-counter').innerText = `${playerList.length} / ${targetCount} 人`;
+      document.getElementById('waiting-counter').innerText = `${connectedPlayers.length} / ${targetCount} 人`;
       const container = document.getElementById('waiting-player-list');
       container.innerHTML = '';
 
@@ -594,8 +513,8 @@
         const item = document.createElement('div');
         item.className = "flex justify-between items-center bg-slate-950/90 p-3 rounded-xl border border-slate-800 text-xs font-bold";
         
-        if (i < playerList.length) {
-          const p = playerList[i];
+        if (i < connectedPlayers.length) {
+          const p = connectedPlayers[i];
           item.innerHTML = `
             <span class="text-emerald-300 flex items-center gap-2">
               <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
@@ -614,27 +533,30 @@
         container.appendChild(item);
       }
 
-      // Check if all human players met -> START GAME
-      if (playerList.length >= targetCount) {
+      if (connectedPlayers.length >= targetCount) {
         SE.playFanfare();
         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        
+        if (channel && isHost) {
+          channel.postMessage({ type: 'START' });
+        }
         setTimeout(() => {
-          document.getElementById('waiting-room-modal').classList.add('hidden');
-          initMahjongTable();
+          startMahjongGame();
         }, 1200);
       }
     }
 
-    // Cancel Waiting
+    function startMahjongGame() {
+      document.getElementById('waiting-room-modal').classList.add('hidden');
+      initMahjongTable();
+    }
+
     document.getElementById('btn-cancel-waiting').addEventListener('click', () => {
       SE.playClick();
-      if (peer) peer.destroy();
+      if (channel) channel.close();
       document.getElementById('waiting-room-modal').classList.add('hidden');
       document.getElementById('start-screen').classList.remove('hidden');
     });
 
-    // Copy Handlers
     document.getElementById('btn-copy-code-lobby').addEventListener('click', () => {
       SE.playClick();
       navigator.clipboard.writeText(roomCode);
@@ -645,7 +567,7 @@
       SE.playClick();
       const inviteURL = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
       navigator.clipboard.writeText(inviteURL);
-      showToast("招待リンクをコピーしました！");
+      showToast("招待URLをコピーしました！");
     });
 
     let gameHand = [];
@@ -653,14 +575,11 @@
 
     function initMahjongTable() {
       document.getElementById('game-room-id-text').innerText = roomCode;
-      
-      // Setup random starting hand of 13 hiragana tiles
       gameHand = [];
       for (let i = 0; i < 13; i++) {
         const randomChar = HIRAGANA_BASE[Math.floor(Math.random() * HIRAGANA_BASE.length)];
         gameHand.push(randomChar);
       }
-
       renderHandUI();
       showToast("対局が開始されました！");
     }
@@ -682,11 +601,7 @@
 
         tileEl.addEventListener('click', () => {
           SE.playClick();
-          if (selectedTileIndex === idx) {
-            selectedTileIndex = null;
-          } else {
-            selectedTileIndex = idx;
-          }
+          selectedTileIndex = (selectedTileIndex === idx) ? null : idx;
           renderHandUI();
         });
 
@@ -696,20 +611,17 @@
       document.getElementById('btn-discard').disabled = selectedTileIndex === null;
     }
 
-    // Discard Action
     document.getElementById('btn-discard').addEventListener('click', () => {
       if (selectedTileIndex !== null) {
         SE.playDiscard();
         const discardedChar = gameHand.splice(selectedTileIndex, 1)[0];
         
-        // Add to user discards
         const p0Discards = document.getElementById('p0-discards');
         const dBadge = document.createElement('span');
         dBadge.className = "bg-slate-800 text-amber-200 border border-amber-500/30 px-2 py-0.5 rounded text-xs font-bold shadow";
         dBadge.innerText = discardedChar;
         p0Discards.appendChild(dBadge);
 
-        // Draw new tile automatically
         setTimeout(() => {
           const newChar = HIRAGANA_BASE[Math.floor(Math.random() * HIRAGANA_BASE.length)];
           gameHand.push(newChar);
@@ -728,6 +640,3 @@
   </script>
 </body>
 </html>
-```
-
-お待たせいたしました！画面右側の領域で新しく生まれ変わった『極・ひらがな麻雀』のプレビューと動作をご確認いただけます。
