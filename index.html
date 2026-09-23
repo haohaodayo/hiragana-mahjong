@@ -112,6 +112,16 @@
     <span id="toast-message" class="font-bold text-sm">通知メッセージ</span>
   </div>
 
+  <!-- Copy Fallback Modal for Sandboxed IFrames -->
+  <div id="copy-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 border-2 border-amber-500 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl">
+      <h3 class="text-lg font-bold gold-text mb-2">📋 共有用テキスト</h3>
+      <p class="text-xs text-slate-300 mb-3">以下のテキストを長押ししてコピーしてください</p>
+      <input type="text" id="copy-input-field" readonly class="w-full bg-slate-950 border border-amber-500/50 rounded-xl p-3 text-amber-300 font-mono text-center font-bold mb-4 outline-none select-all" />
+      <button onclick="closeCopyModal()" class="w-full py-2.5 gold-button text-slate-950 font-black rounded-xl text-xs">閉じる</button>
+    </div>
+  </div>
+
   <div id="start-screen" class="fixed inset-0 z-40 bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-950 flex flex-col items-center justify-center p-4">
     <div class="max-w-xl w-full bg-slate-900/95 border-2 border-amber-500/70 p-6 md:p-8 rounded-3xl shadow-2xl backdrop-blur-2xl flex flex-col items-center text-center relative overflow-hidden">
       
@@ -186,8 +196,8 @@
   <div id="waiting-room-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md hidden p-4">
     <div class="bg-slate-900 border-2 border-amber-500/80 p-6 md:p-8 rounded-3xl max-w-md w-full shadow-2xl text-center relative flex flex-col items-center overflow-hidden">
       
-      <div class="w-24 h-24 mb-3 relative rounded-full p-1 bg-gradient-to-tr from-amber-400 via-emerald-400 to-yellow-500 avatar-glow shrink-0 flex items-center justify-center text-4xl">
-        🀄
+      <div class="w-24 h-24 mb-3 relative rounded-full p-1 bg-gradient-to-tr from-amber-400 via-emerald-400 to-yellow-500 avatar-glow shrink-0 flex items-center justify-center overflow-hidden">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%2310b981'/%3E%3Ccircle cx='50' cy='50' r='25' fill='%23ffffff'/%3E%3Ccircle cx='50' cy='50' r='10' fill='%23020617'/%3E%3C/svg%3E" alt="Character" class="w-full h-full object-cover rounded-full" />
       </div>
 
       <h3 class="text-2xl font-black gold-text mb-1" id="waiting-title">対戦相手を待っています…</h3>
@@ -360,7 +370,7 @@
     }
     const SE = new SoundEngine();
 
-    const HIRAGANA_BASE = ["あ","い","う","え","お","か","き","く","け","こ","さ","し","す","せ","そ","た","ち","つ","て","と","な","に","ぬ","ね","の","は","ひ","ふ","へ","ほ","ま","み","む","め","も","や","ゆ","よ","ら","り","る","れ","ろ","わ","ん"];
+    const HIRAGANA_BASE = ["あ","い","う","え","お","か","き","く","け","こ","さ","し","す","せ","そ","た","ち","つ","て","と","な","に","ぬ","ね","の","は","ひ","ふ","へ","ほ","ま","み","む","め","もの","や","ゆ","よ","ら","り","る","れ","ろ","わ","ん"];
 
     let isHost = true;
     let targetPlayerCount = 3;
@@ -368,7 +378,7 @@
     let playerName = "";
     let channel = null;
     let connectedPlayers = [];
-    const myClientId = 'client_' + Math.random().toString(36.25).substring(2, 9);
+    const myClientId = 'client_' + Math.random().toString(36).substring(2, 9);
 
     function showToast(msg) {
       const toast = document.getElementById('toast-notification');
@@ -379,6 +389,33 @@
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('-translate-y-20', 'opacity-0');
       }, 2500);
+    }
+
+    function safeCopyText(textToCopy, successMsg) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            showToast(successMsg);
+          }).catch(() => {
+            openCopyModal(textToCopy);
+          });
+        } else {
+          openCopyModal(textToCopy);
+        }
+      } catch (err) {
+        openCopyModal(textToCopy);
+      }
+    }
+
+    function openCopyModal(text) {
+      document.getElementById('copy-input-field').value = text;
+      document.getElementById('copy-modal').classList.remove('hidden');
+      document.getElementById('copy-input-field').select();
+    }
+
+    function closeCopyModal() {
+      document.getElementById('copy-modal').classList.add('hidden');
+      showToast("テキストをコピーしてください");
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -458,7 +495,6 @@
       document.getElementById('waiting-room-modal').classList.remove('hidden');
       document.getElementById('display-room-code').innerText = code;
 
-      // Initialize BroadcastChannel strictly tied to the room code
       if (channel) channel.close();
       channel = new BroadcastChannel('hiragana_mahjong_room_' + code);
 
@@ -469,7 +505,6 @@
         if (!msg) return;
 
         if (msg.type === 'JOIN_REQUEST') {
-          // If I am host, broadcast my player list & target count
           if (isHost) {
             if (!connectedPlayers.some(p => p.id === msg.clientId)) {
               connectedPlayers.push({ id: msg.clientId, name: msg.name, isHost: false });
@@ -477,7 +512,6 @@
             broadcastRoomState();
           }
         } else if (msg.type === 'ROOM_STATE') {
-          // If I am guest, sync players list & mode
           connectedPlayers = msg.players;
           targetPlayerCount = msg.targetCount;
           updateWaitingLobbyUI();
@@ -493,9 +527,8 @@
       } else {
         document.getElementById('waiting-title').innerText = "部屋に参加しました";
         document.getElementById('btn-start-game-forced').classList.add('hidden');
-        // Announce join request to host
         channel.postMessage({ type: 'JOIN_REQUEST', clientId: myClientId, name: name });
-        showToast("ホストの部屋に接続を試みています...");
+        showToast("ホストの部屋に接続しました！");
       }
     }
 
@@ -540,7 +573,6 @@
         container.appendChild(item);
       }
 
-      // Auto start if host & count reached
       if (isHost && connectedPlayers.length >= targetPlayerCount) {
         triggerStartGame();
       }
@@ -572,15 +604,13 @@
 
     document.getElementById('btn-copy-code-lobby').addEventListener('click', () => {
       SE.playClick();
-      navigator.clipboard.writeText(roomCode);
-      showToast("部屋コードをコピーしました！");
+      safeCopyText(roomCode, "部屋コードをコピーしました！");
     });
 
     document.getElementById('btn-copy-waiting-link').addEventListener('click', () => {
       SE.playClick();
       const inviteURL = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
-      navigator.clipboard.writeText(inviteURL);
-      showToast("招待URLをコピーしました！");
+      safeCopyText(inviteURL, "招待URLをコピーしました！");
     });
 
     let gameHand = [];
@@ -590,7 +620,6 @@
       document.getElementById('game-room-id-text').innerText = roomCode;
       document.getElementById('p0-name-disp').innerText = playerName;
       
-      // Setup opponent name labels from connected players
       const opponents = connectedPlayers.filter(p => p.id !== myClientId);
       if (opponents[0]) document.getElementById('p1-name').innerText = opponents[0].name;
       if (opponents[1]) document.getElementById('p2-name').innerText = opponents[1].name;
